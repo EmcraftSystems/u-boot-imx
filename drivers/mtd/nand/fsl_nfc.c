@@ -206,6 +206,17 @@ static u8 fsl_nfc_get_id(struct mtd_info *mtd, int col)
 
 	flash_id1 = nfc_read(mtd, NFC_FLASH_STATUS1);
 	pid = (u8 *)&flash_id1;
+	struct nand_chip *chip = mtd->priv;
+	struct fsl_nfc_prv *prv = chip->priv;
+	return ((*(pid + 3 - col) >> 7) & 1) |
+		((*(pid + 3 - col) >> 5) & 2) |
+		((*(pid + 3 - col) >> 3) & 4) |
+		((*(pid + 3 - col) >> 1) & 8) |
+		((*(pid + 3 - col) << 1) & 16) |
+		((*(pid + 3 - col) << 3) & 32) |
+		((*(pid + 3 - col) << 5) & 64) |
+		((*(pid + 3 - col) << 7) & 128);
+
 #ifdef CONFIG_COLDFIRE
 	return *(pid + col);
 #else
@@ -428,7 +439,7 @@ read0:
 		return;
 	case NAND_CMD_READID:
 		get_id = 1;
-		fsl_nfc_send_one_byte(mtd, command, READ_ID_CMD_CODE);
+		fsl_nfc_send_one_byte(mtd, /*command*/0x09, READ_ID_CMD_CODE);
 		break;
 	case NAND_CMD_STATUS:
 		get_status = 1;
@@ -731,7 +742,7 @@ int board_nand_init(struct nand_chip *chip)
 	chip->write_buf = fsl_nfc_write_buf;
 	chip->verify_buf = fsl_nfc_verify_buf;
 	chip->options = NAND_NO_AUTOINCR | NAND_USE_FLASH_BBT |
-		NAND_BUSWIDTH_16 | NAND_CACHEPRG;
+		/*NAND_BUSWIDTH_16 |*/ NAND_CACHEPRG;
 
 	chip->select_chip = nfc_select_chip;
 
@@ -790,7 +801,7 @@ int board_nand_init(struct nand_chip *chip)
 
 	nfc_set_field(mtd, NFC_FLASH_CONFIG,
 			CONFIG_16BIT_MASK,
-			CONFIG_16BIT_SHIFT, 1);
+			CONFIG_16BIT_SHIFT, 0);
 
 	/* SET FAST_FLASH = 1 */
 	nfc_set_field(mtd, NFC_FLASH_CONFIG,

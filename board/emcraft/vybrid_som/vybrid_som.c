@@ -200,6 +200,8 @@ unsigned long ddr_ctrl_init(void)
 	__raw_writel(0x0c28002c, DDR_CR026);	// tref, trfc
 #elif  PHYS_SDRAM_1_SIZE == (256 * 1024 * 1024)
 	__raw_writel(0x0c280040, DDR_CR026);	// tref, trfc
+#elif  PHYS_SDRAM_1_SIZE == (512 * 1024 * 1024)
+	__raw_writel(0x0c280066, DDR_CR026);	// tref, trfc
 #else
 #error "Unsupported memory size specified"
 #endif
@@ -312,6 +314,8 @@ unsigned long ddr_ctrl_init(void)
 	__raw_writel(0x0a010300, DDR_CR073);	// arebit, col_diff, row_diff, bank_diff
 #elif  PHYS_SDRAM_1_SIZE == (256 * 1024 * 1024)
 	__raw_writel(0x0a010200, DDR_CR073);	// arebit, col_diff, row_diff, bank_diff
+#elif  PHYS_SDRAM_1_SIZE == (512 * 1024 * 1024)
+	__raw_writel(0x0a010100, DDR_CR073);	// arebit, col_diff, row_diff, bank_diff
 #else
 #error "Unsupported memory size specified"
 #endif
@@ -549,9 +553,33 @@ int board_mmc_init(bd_t *bis)
 }
 #endif
 
+#ifdef CONFIG_NAND_FSL_NFC
+void setup_iomux_nfc(void)
+{
+	__raw_writel(0x002038df, IOMUXC_PAD_071);
+	__raw_writel(0x002038df, IOMUXC_PAD_072);
+	__raw_writel(0x002038df, IOMUXC_PAD_073);
+	__raw_writel(0x002038df, IOMUXC_PAD_074);
+	__raw_writel(0x002038df, IOMUXC_PAD_075);
+	__raw_writel(0x002038df, IOMUXC_PAD_076);
+	__raw_writel(0x002038df, IOMUXC_PAD_077);
+	__raw_writel(0x002038df, IOMUXC_PAD_078);
+
+	__raw_writel(0x005038d2, IOMUXC_PAD_094);
+	__raw_writel(0x005038d2, IOMUXC_PAD_095);
+	__raw_writel(0x006038d2, IOMUXC_PAD_097);
+	__raw_writel(0x005038dd, IOMUXC_PAD_099);
+	__raw_writel(0x006038d2, IOMUXC_PAD_100);
+	__raw_writel(0x006038d2, IOMUXC_PAD_101);
+}
+#endif
+
 int board_early_init_f(void)
 {
 	setup_iomux_uart();
+#ifdef CONFIG_NAND_FSL_NFC
+	setup_iomux_nfc();
+#endif
 
 	return 0;
 }

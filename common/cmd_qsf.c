@@ -419,40 +419,6 @@ struct QSPI_tag {
 #define CMD_READID	12
 #define CMD_READCFI	13
 
-void split(unsigned long src, unsigned long dest1, unsigned long dest2,
-	   unsigned long size)
-{
-	unsigned long *data = (unsigned long *)src;
-	unsigned long *array1 = (unsigned long *)dest1;
-	unsigned long *array2 = (unsigned long *)dest2;
-	unsigned int i;
-
-	for (i = 0; i < size / 4; i = i + 2) {
-		*array1 =
-		    ((*data & 0xF0000000) + ((*data & 0x00F00000) << 4) +
-		     ((*data & 0x0000F000) << 8) +
-		     ((*data & 0x000000F0) << 12));
-		*array2 =
-		    (((*data & 0x0F000000) << 4) + ((*data & 0x000F0000) << 8) +
-		     ((*data & 0x00000F00) << 12) +
-		     ((*data & 0x0000000F) << 16));
-
-		data = data + 1;
-		*array1 +=
-		    (((*data & 0xF0000000) >> 16) +
-		     ((*data & 0x00F00000) >> 12) +
-		     ((*data & 0x0000F000) >> 8) + ((*data & 0x000000F0) >> 4));
-		*array2 +=
-		    (((*data & 0x0F000000) >> 12) +
-		     ((*data & 0x000F0000) >> 8) + ((*data & 0x00000F00) >> 4) +
-		     ((*data & 0x0000000F)));
-
-		data++;
-		array1++;
-		array2++;
-	}
-}
-
 void setup_iomux_quadspi(void)
 {
 	__raw_writel(0x001030C2, IOMUXC_PAD_079);	/* SCK */
@@ -494,10 +460,10 @@ void quadspi_config_spi0(void)
 	QSPI0.BUF1CR.R = 0x002;
 	QSPI0.BUF3CR.R = 0x80000000;
 
-	QSPI0.SFA1AD.R = 0x21000000;	// top address of FA1 
-	QSPI0.SFA2AD.R = 0x21000000;	// top address of FA2 
-	QSPI0.SFB1AD.R = 0x22000000;	// top address of FB1 
-	QSPI0.SFB2AD.R = 0x22000000;	// top address of FB2
+	QSPI0.SFA1AD.R = 0x24000000;	// top address of FA1 
+	QSPI0.SFA2AD.R = 0x24000000;	// top address of FA2 
+	QSPI0.SFB1AD.R = 0x28000000;	// top address of FB1 
+	QSPI0.SFB2AD.R = 0x28000000;	// top address of FB2
 }
 
 void quadspi_unlocklookuptable(void)
@@ -704,10 +670,10 @@ void enable_quad_bit(u32 status)
 	QSPI0.FR.R = 0x10000;	/* read complete */
 }
 
-#define SMBR	0x10000
+#define SMBR	0x30000
 #define USETBL	0xb000
 #define FLASH_BASE_ADR	0x20000000
-#define FLASH_BASE1_ADR	0x21000000
+#define FLASH_BASE1_ADR	0x24000000
 int quadspi_init(void)
 {
 	setup_iomux_quadspi();	/* port configuration */
@@ -736,10 +702,10 @@ int quadspi_init(void)
 
 	QSPI0.SFAR.R = FLASH_BASE_ADR;
 
-	QSPI0.SFA1AD.R = (1 << 24) | 0x20000000;
-	QSPI0.SFA2AD.R = (1 << 24) | 0x20000000;
-	QSPI0.SFB1AD.R = (1 << 25) | 0x20000000;
-	QSPI0.SFB2AD.R = (1 << 25) | 0x20000000;
+	QSPI0.SFA1AD.R = (4 << 24) | 0x20000000;
+	QSPI0.SFA2AD.R = (4 << 24) | 0x20000000;
+	QSPI0.SFB1AD.R = (8 << 24) | 0x20000000;
+	QSPI0.SFB2AD.R = (8 << 24) | 0x20000000;
 
 	return 0;
 }
@@ -793,7 +759,7 @@ void erase_flash(u32 flashbase)
 int qspi_flash_write(u32 offset, size_t len, void *buf)
 {
 	unsigned int *start_address = (unsigned int *)buf, tmp;
-	unsigned int *end_address = (unsigned int *)(buf + roundup(len, 256));
+	unsigned int *end_address = (unsigned int *)(buf + roundup(len, flash->page_size));
 	unsigned int *page_address = start_address;
 	unsigned int *flash_address = (unsigned int *)(0x20000000 + offset);
 	int page_size = flash->page_size;
@@ -803,7 +769,7 @@ int qspi_flash_write(u32 offset, size_t len, void *buf)
 
 	mcr_reg = QSPI0.MCR.R;
 	QSPI0.MCR.R = QSPI_MCR_CLR_RXF_MASK | QSPI_MCR_CLR_TXF_MASK | 0xf0080;
-	QSPI0.RBCT.R = 0x100;
+	QSPI0.RBCT.R = 0x200;
 
 	// 1024 offset for spansion
 	QSPI0.SFAR.R = (unsigned int)flash_address;
@@ -826,8 +792,8 @@ int qspi_flash_write(u32 offset, size_t len, void *buf)
 				else
 					QSPI0.TBDR.R = *current_address++;
 
-			QSPI0.IPCR.R = (CMD_PAGEPROG << 24) | page_size;	//page program 256bytes 
-			for (i = 0; i < 48; i++) {
+			QSPI0.IPCR.R = (CMD_PAGEPROG << 24) | page_size; //page program 256/512 bytes 
+			for (i = 0; i < (flash->page_size >> 2) - 16; i++) {
 				while (QSPI0.SR.B.TXFULL) ;
 				if (swap_data) {
 					tmp = *current_address++;
@@ -847,7 +813,8 @@ int qspi_flash_write(u32 offset, size_t len, void *buf)
 
 	QSPI0.MCR.R = mcr_reg;
 
-	invalidate_dcache_range(0x20000000 + offset, 0x20000000 + offset + roundup(len, 256));
+	invalidate_dcache_range(0x20000000 + offset, 0x20000000 + offset +
+			roundup(len, flash->page_size));
 
 	return 0;
 }
@@ -859,7 +826,7 @@ int qspi_flash_read(u32 offset, size_t len, void *buf)
 	
 	mcr_reg = QSPI0.MCR.R;
 	QSPI0.MCR.R = QSPI_MCR_CLR_RXF_MASK | QSPI_MCR_CLR_TXF_MASK | 0xf0080;
-	QSPI0.RBCT.R = 0x100;
+	QSPI0.RBCT.R = 0x200;
 
 	offset += 0x20000000;
 
@@ -999,9 +966,9 @@ int qspi_flash_probe(int swap)
 
 	flash = malloc(100);
 	flash->name = "Spansion";
-	flash->size = 0x2000000;
-	flash->page_size = 0x100;
-	flash->sector_size = 0x10000;
+	flash->size = 0x8000000;
+	flash->page_size = 0x200;
+	flash->sector_size = 0x40000;
 
 	probed = 1;
 
@@ -1065,7 +1032,7 @@ int qspi_flash_erase(unsigned long offset, unsigned int len)
 {
 	if ((offset == 0) && (len == flash->size)) {
 		erase_flash(0x20000000);
-		erase_flash(0x21000000);
+		erase_flash(0x20000000 + flash->size / 2);
 	}
 	else {
 		u32 base = 0x20000000 + offset;

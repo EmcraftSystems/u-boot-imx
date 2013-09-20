@@ -59,7 +59,7 @@
 
 #define CONFIG_MACH_TYPE		MACH_TYPE_VYBRID_VF6XX
 /* Size of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN		(16 << 10)
+#define CONFIG_SYS_MALLOC_LEN		(1024*1024)
 
 #define CONFIG_BOARD_LATE_INIT
 
@@ -88,6 +88,7 @@
 #undef CONFIG_CMD_NFS		/* NFS support			*/
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_QSF
+#define CONFIG_CMD_NAND
 
 #undef CONFIG_CMD_IMI		/* iminfo */
 #undef CONFIG_CMD_IMLS
@@ -111,6 +112,20 @@
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
+#endif
+
+/*
+ * NAND FLASH
+ */
+#ifdef CONFIG_CMD_NAND
+#define CONFIG_MTD_NAND_FSL_NFC_SWECC	1
+#define CONFIG_JFFS2_NAND
+#define CONFIG_NAND_FSL_NFC
+#define CONFIG_SYS_NAND_BASE		0x400E0000
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+#define NAND_MAX_CHIPS			CONFIG_SYS_MAX_NAND_DEVICE
+#define CONFIG_SYS_NAND_SELECT_DEVICE
+#define	CONFIG_SYS_64BIT_VSPRINTF	/* needed for nand_util.c */
 #endif
 
 /* Network configuration */
@@ -193,11 +208,11 @@
  *
  * The stack sizes are set up in start.S using the settings below
  */
-#define CONFIG_STACKSIZE		(128 * 1024)	/* regular stack */
+#define CONFIG_STACKSIZE		(1024 * 1024)	/* regular stack */
 
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS		1
-#define PHYS_SDRAM_1_SIZE		(256 * 1024 * 1024)
+#define PHYS_SDRAM_1_SIZE		(512 * 1024 * 1024)
 
 #define CONFIG_SYS_SDRAM_BASE		(0x80000000)
 #define CONFIG_SYS_INIT_RAM_ADDR	(IRAM_BASE_ADDR)
@@ -210,6 +225,9 @@
 #elif  PHYS_SDRAM_1_SIZE == (256 * 1024 * 1024)
 #define CONFIG_SYS_MEMTEST_END		0x8FC00000
 #define KERNEL_MEM_INFO			"256M"
+#elif  PHYS_SDRAM_1_SIZE == (512 * 1024 * 1024)
+#define CONFIG_SYS_MEMTEST_END		0x9FC00000
+#define KERNEL_MEM_INFO			"512M"
 #else
 #error "Unsupported memory size specified"
 #endif
@@ -240,11 +258,11 @@
 #define CONFIG_SYS_CLKCTL_CCGR11	0xFFFFFFFF
 
 #define CONFIG_SYS_CLKCTRL_CCR		0x00010005
-#define CONFIG_SYS_CLKCTRL_CCSR		0x0013FF64 //PLL2 as a System clock;
+#define CONFIG_SYS_CLKCTRL_CCSR		0x0013FF24 //PLL1 as a System clock;
 #define CONFIG_SYS_CLKCTRL_CACRR	0x00000810
 #define CONFIG_SYS_CLKCTRL_CSCMR1	0x000a0000
 #define CONFIG_SYS_CLKCTRL_CSCDR1	0x01000000
-#define CONFIG_SYS_CLKCTRL_CSCDR2	0x30110000
+#define CONFIG_SYS_CLKCTRL_CSCDR2	0x30114240 // 0x30114240
 #define CONFIG_SYS_CLKCTRL_CSCDR3	0x00000000
 #define CONFIG_SYS_CLKCTRL_CSCMR2	0x00000000
 #define CONFIG_SYS_CLKCTRL_CSCDR4	0x00000000
@@ -261,24 +279,24 @@
 #define CONFIG_SYS_ANADIG_VID_DENOM	0x00000012
 #define CONFIG_SYS_ANADIG_ENET_CTRL	0x00011001
 #define CONFIG_SYS_ANADIG_PFD_USB1	0x1B1D1A1C
-#define CONFIG_SYS_ANADIG_PFD_528	0x171C1813
+#define CONFIG_SYS_ANADIG_PFD_528	0x121C1813
 #define CONFIG_SYS_ANADIG_USB1_MISC	0x00000002
 #define CONFIG_SYS_ANADIG_USB2_VBUS	0x00100004
 #define CONFIG_SYS_ANADIG_USB2_CHRG	0x00000000
 #define CONFIG_SYS_ANADIG_USB2_MISC	0x00000002
-#define CONFIG_SYS_ANADIG_SYS_CTRL	0x00002001
+#define CONFIG_SYS_ANADIG_SYS_CTRL	0x00002001//0
 #define CONFIG_SYS_ANADIG_SYS_SS	0x00000000
-#define CONFIG_SYS_ANADIG_SYS_NUM	0x00000000
-#define CONFIG_SYS_ANADIG_SYS_DENOM	0x00000012
-#define CONFIG_SYS_ANADIG_SYS_PFD_528	0x00000000
+#define CONFIG_SYS_ANADIG_SYS_NUM	0x00000000//6
+#define CONFIG_SYS_ANADIG_SYS_DENOM	0x00000008
+#define CONFIG_SYS_ANADIG_SYS_PFD_528	0x12181512
 #define CONFIG_SYS_ANADIG_SYS_PLL_LOCK	0x00000000
 
 /* FLASH and environment organization */
 #define CONFIG_SYS_NO_FLASH
 
 #define CONFIG_ENV_IS_IN_QSPI_FLASH
-#define CONFIG_ENV_OFFSET		(0x30000)
-#define CONFIG_ENV_SIZE			(0x10000)
+#define CONFIG_ENV_OFFSET		(0x40000)
+#define CONFIG_ENV_SIZE			(0x40000)
 
 #define CONFIG_EXTRA_ENV_SETTINGS                                       \
         "autoload=yes\0"                                                \
@@ -288,9 +306,10 @@
         "ethaddr=C0:B1:3C:77:88:AB\0"                           \
         "ipaddr=172.17.44.46\0"                                  \
         "serverip=172.17.0.1\0"                                 \
-        "image=uImage\0"                                    \
+        "image=dk/lcdtest.uImage\0"                                    \
 	"netboot=tftp ${image};run addip;bootm\0"		\
 	"bootcmd=qspi probe 1;cp.b 20040000 ${loadaddr} ${flashsize};run addip;bootm\0"               \
+	"bootcmd=run netboot\0" \
 	"bootargs=mem=" KERNEL_MEM_INFO " console=ttymxc0,115200\0"		\
 	"verify=no\0" \
 	"bootdelay=3\0" \
