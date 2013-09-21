@@ -518,7 +518,7 @@ void quadspi_setuplookuptable(void)
 
 	// Page Program 
 	lkuptbl = 16;
-	QSPI0.LUT[lkuptbl++].R = 0x08180402;	// 24bit address 
+	QSPI0.LUT[lkuptbl++].R = 0x08200412;	// 32bit address 
 	QSPI0.LUT[lkuptbl].R = 0x2004;		// default 4-byte write 
 
 	// Write Config/Status 
@@ -531,7 +531,7 @@ void quadspi_setuplookuptable(void)
 
 	// Sector Erase 
 	lkuptbl = 28;
-	QSPI0.LUT[lkuptbl].R = 0x081804D8;
+	QSPI0.LUT[lkuptbl].R = 0x082004DC;
 
 	// read
 	lkuptbl = 32;
@@ -596,7 +596,7 @@ void quadspi_setuplookuptable(void)
 
 	// Quad DDR read
 	lkuptbl = 44;
-	QSPI0.LUT[lkuptbl++].R = 0x2a1804ed;
+	QSPI0.LUT[lkuptbl++].R = 0x2a2004ee;
 	QSPI0.LUT[lkuptbl++].R = 0x0c062eff;
 	QSPI0.LUT[lkuptbl++].R = 0x3a80;
 	QSPI0.LUT[lkuptbl].R = 0;

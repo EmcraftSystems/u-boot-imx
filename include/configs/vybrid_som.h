@@ -88,7 +88,7 @@
 #undef CONFIG_CMD_NFS		/* NFS support			*/
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_QSF
-#define CONFIG_CMD_NAND
+//#define CONFIG_CMD_NAND
 
 #undef CONFIG_CMD_IMI		/* iminfo */
 #undef CONFIG_CMD_IMLS
@@ -304,16 +304,16 @@
                 "ip=${ipaddr}:${serverip}:${gatewayip}:"        \
                         "${netmask}:${hostname}:eth0:off\0"     \
         "ethaddr=C0:B1:3C:77:88:AB\0"                           \
-        "ipaddr=172.17.44.46\0"                                  \
-        "serverip=172.17.0.1\0"                                 \
-        "image=dk/lcdtest.uImage\0"                                    \
+        "ipaddr=192.168.1.246\0"                                  \
+        "serverip=192.168.1.67\0"                                 \
+        "image=vy/networking.uImage\0"                                    \
 	"netboot=tftp ${image};run addip;bootm\0"		\
-	"bootcmd=qspi probe 1;cp.b 20040000 ${loadaddr} ${flashsize};run addip;bootm\0"               \
-	"bootcmd=run netboot\0" \
+	"qspiboot=qspi probe 1;cp.b 20080000 ${loadaddr} ${flashsize};run addip;bootm\0"               \
+	"bootcmd=run qspiboot\0" \
 	"bootargs=mem=" KERNEL_MEM_INFO " console=ttymxc0,115200\0"		\
 	"verify=no\0" \
 	"bootdelay=3\0" \
-	"update=tftp ${image};qspi probe 1;qspi erase 40000 +${filesize};qspi write ${loadaddr} 40000 ${filesize};setenv flashsize ${filesize};saveenv\0" \
+	"update=tftp ${image};qspi probe 1;qspi erase 80000 +${filesize};qspi write ${loadaddr} 80000 ${filesize};setenv flashsize ${filesize};saveenv\0" \
 	"uboot_image=u-boot.qspi\0"
 
 #endif
