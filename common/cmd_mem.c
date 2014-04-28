@@ -439,6 +439,15 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	}
 #endif
 
+#if defined(CONFIG_VYBRID)
+	/* QSPI memory range can be accessed with memcpy to improve speed */
+	if ((addr >= 0x20000000 && addr < 0x30000000) ||
+		(addr >= 0x50000000 && addr < 0x60000000)) {
+		memcpy((void *)dest, (void *)addr, count * size);
+		return 0;
+	}
+#endif
+
 	while (count-- > 0) {
 		if (size == 4)
 			*((ulong  *)dest) = *((ulong  *)addr);
