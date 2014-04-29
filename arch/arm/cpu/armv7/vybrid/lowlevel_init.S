@@ -127,6 +127,8 @@
 	str r1, [r2, #0xE0]
 	ldr r1, =CONFIG_SYS_ANADIG_SYS_CTRL
 	str r1, [r2, #0x270]
+	ldr r1, =CONFIG_SYS_ANADIG_PFD_USB1
+	str r1, [r2, #0xF0]
 
 	/*check for PLL2 lock*/
 wait_PLL2:	ldr r1, [r2, #0x30]
