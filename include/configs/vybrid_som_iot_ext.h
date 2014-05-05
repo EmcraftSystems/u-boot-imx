@@ -79,6 +79,8 @@
 
 # define KERNEL_FLASH_BASE	"200000"
 # define KERNEL_MEM_BASE	"20200000"
+# define SPLASH_FLASH_BASE	"80000"
+# define SPLASH_MEM_BASE	"20080000"
 
 #else /* CONFIG_SPLASH_SCREEN */
 # define KERNEL_FLASH_BASE	"80000"
@@ -103,6 +105,11 @@
 	LCD_BOOTARG "\0"						\
 	"verify=no\0"							\
 	"bootdelay=3\0"							\
+	"splashimage=" SPLASH_MEM_BASE "\0"				\
+	"splashpos='m,m'\0"						\
+	"splashupdate=tftp ${splashfile} && qspi probe 1 && qspi erase "\
+	SPLASH_FLASH_BASE " +${filesize} && qspi write ${loadaddr} "	\
+ 	SPLASH_FLASH_BASE " ${filesize}\0"				\
 	"update=tftp ${image} && qspi probe 1 && qspi erase "		\
 	KERNEL_FLASH_BASE " +${filesize} && qspi write ${loadaddr} "	\
 	KERNEL_FLASH_BASE " ${filesize} && setenv flashsize ${filesize}"\
