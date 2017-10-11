@@ -465,10 +465,13 @@ int boot_get_ramdisk(char const *select, struct bootm_headers *images,
 	*rd_end = 0;
 
 	/*
-	 * Look for a '-' which indicates to ignore the
-	 * ramdisk argument
+	 * Look for a '-' which indicates to ignore the ramdisk argument.
+	 * Also skip ramdisk if multi-image consists of 2 files (image+dtb).
 	 */
-	if (select && strcmp(select, "-") ==  0) {
+	if ((select && strcmp(select, "-") ==  0) ||
+	    (images->legacy_hdr_valid &&
+	     image_check_type(&images->legacy_hdr_os_copy, IH_TYPE_MULTI) &&
+	     image_multi_count(images->legacy_hdr_os) == 2)) {
 		debug("## Skipping init Ramdisk\n");
 		rd_len = 0;
 		rd_data = 0;
