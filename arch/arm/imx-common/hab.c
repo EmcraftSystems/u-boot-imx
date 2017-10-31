@@ -77,7 +77,8 @@
 #define MX6DLS_PU_IROM_MMU_EN_VAR	0x00901dd0
 #define MX6SL_PU_IROM_MMU_EN_VAR	0x00900a18
 #define IS_HAB_ENABLED_BIT \
-	(is_soc_type(MXC_SOC_MX7) ? 0x2000000 : 0x2)
+	(is_soc_type(MXC_SOC_MX7ULP) ? 0x80000000 :	\
+	 (is_soc_type(MXC_SOC_MX7) ? 0x2000000 : 0x2))
 
 /*
  * +------------+  0x0 (DDR_UIMAGE_START) -
@@ -487,6 +488,17 @@ uint32_t authenticate_image(uint32_t ddr_start, uint32_t image_size)
 				}
 			}
 
+			/* Clear the DCD pointer if it is not 0 */
+			unsigned char *dcd_ptr = (unsigned char *)(ddr_start + ivt_offset + 0xC);
+			do {
+				if (*dcd_ptr) {
+					puts("Warning, DCD pointer must be 0\n");
+					memset((void *)(ddr_start + ivt_offset + 0xC), 0, 4);
+					break;
+				}
+				dcd_ptr++;
+			} while (dcd_ptr < (unsigned char *)(ddr_start + ivt_offset + 0x10));
+	
 			load_addr = (uint32_t)hab_rvt_authenticate_image(
 					HAB_CID_UBOOT,
 					ivt_offset, (void **)&start,

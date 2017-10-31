@@ -65,9 +65,12 @@
 
 #define CONFIG_ARMV7_SECURE_BASE	0x00900000
 
+/* uncomment for SECURE mode support */
+/* #define CONFIG_SECURE_BOOT */
+
 /* Secure boot (HAB) support */
 #ifdef CONFIG_SECURE_BOOT
-#define CONFIG_CSF_SIZE			0x2000
+#define CONFIG_CSF_SIZE			0x4000
 #define CONFIG_CMD_DEKBLOB
 #endif
 

@@ -2,6 +2,8 @@
  * (C) Copyright 2002 ELTEC Elektronik AG
  * Frank Gottschling <fgottschling@eltec.de>
  *
+ * Copyright (C) 2015-2016 Freescale Semiconductor, Inc.
+ *
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
@@ -1187,7 +1189,7 @@ static int display_rle8_bitmap(struct bmp_image *img, int xoff, int yoff,
 	y = __le32_to_cpu(img->header.height) - 1;
 	ncolors = __le32_to_cpu(img->header.colors_used);
 	bpp = VIDEO_PIXEL_SIZE;
-	fbp = (unsigned char *) ((unsigned int) video_fb_address +
+	fbp = (unsigned char *) ((unsigned long) video_fb_address +
 				 (y + yoff) * VIDEO_LINE_LEN +
 				 xoff * bpp);
 
@@ -1242,7 +1244,7 @@ static int display_rle8_bitmap(struct bmp_image *img, int xoff, int yoff,
 				x = 0;
 				y--;
 				fbp = (unsigned char *)
-					((unsigned int) video_fb_address +
+					((unsigned long) video_fb_address +
 					 (y + yoff) * VIDEO_LINE_LEN +
 					 xoff * bpp);
 				continue;
@@ -1255,7 +1257,7 @@ static int display_rle8_bitmap(struct bmp_image *img, int xoff, int yoff,
 				x += bm[2];
 				y -= bm[3];
 				fbp = (unsigned char *)
-					((unsigned int) video_fb_address +
+					((unsigned long) video_fb_address +
 					 (y + yoff) * VIDEO_LINE_LEN +
 					 xoff * bpp);
 				bm += 4;
@@ -1910,16 +1912,31 @@ static void *video_logo(void)
 	sprintf(info, " %s", version_string);
 
 #ifndef CONFIG_HIDE_LOGO_VERSION
-	space = (VIDEO_LINE_LEN / 2 - VIDEO_INFO_X) / VIDEO_FONT_WIDTH;
+	space = (VIDEO_COLS - VIDEO_INFO_X) / VIDEO_FONT_WIDTH;
 	len = strlen(info);
 
 	if (len > space) {
-		video_drawchars(VIDEO_INFO_X, VIDEO_INFO_Y,
-				(uchar *) info, space);
-		video_drawchars(VIDEO_INFO_X + VIDEO_FONT_WIDTH,
-				VIDEO_INFO_Y + VIDEO_FONT_HEIGHT,
-				(uchar *) info + space, len - space);
-		y_off = 1;
+		int xx = VIDEO_INFO_X, yy = VIDEO_INFO_Y;
+		uchar *p = (uchar *) info;
+		while (len) {
+			if (len > space) {
+				video_drawchars(xx, yy, p, space);
+				len -= space;
+
+				p = (uchar *) p + space;
+
+				if (!y_off) {
+					xx += VIDEO_FONT_WIDTH;
+					space--;
+				}
+				yy += VIDEO_FONT_HEIGHT;
+
+				y_off++;
+			} else {
+				video_drawchars(xx, yy, p, len);
+				len = 0;
+			}
+		}
 	} else
 		video_drawstring(VIDEO_INFO_X, VIDEO_INFO_Y, (uchar *) info);
 
@@ -2014,7 +2031,7 @@ static int cfg_video_init(void)
 	if (pGD == NULL)
 		return -1;
 
-	video_fb_address = (void *) VIDEO_FB_ADRS;
+	video_fb_address = (void *)(unsigned long) VIDEO_FB_ADRS;
 
 	cfb_do_flush_cache = cfb_fb_is_in_dram() && dcache_status();
 

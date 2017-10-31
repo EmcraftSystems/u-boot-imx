@@ -85,6 +85,9 @@ config ARM_ERRATA_833069
 config ARM_ERRATA_833471
 	bool
 
+config ARM_ERRATA_845369
+	bool
+
 config CPU_ARM720T
 	bool
 	select SYS_CACHE_SHIFT_5
@@ -577,6 +580,11 @@ config ARCH_MESON
 	  targeted at media players and tablet computers. We currently
 	  support the S905 (GXBaby) 64-bit SoC.
 
+config ARCH_MX7ULP
+        bool "NXP MX7ULP"
+        select CPU_V7
+	select ROM_UNIFIED_SECTIONS
+
 config ARCH_MX7
 	bool "Freescale MX7"
 	select CPU_V7
@@ -833,6 +841,17 @@ config ARCH_ZYNQMP
 	select CLK
 	select SPL_CLK
 	select DM_USB if USB
+
+config ARCH_IMX8
+	bool "Support NXP i.MX8 platform"
+	select ARM64
+	select DM
+	select OF_CONTROL
+
+config ARCH_IMX8M
+	bool "Support NXP i.MX8M platform"
+	select ARM64
+	select DM
 
 config TEGRA
 	bool "NVIDIA Tegra"
@@ -1143,6 +1162,8 @@ source "arch/arm/mach-mvebu/Kconfig"
 
 source "arch/arm/cpu/armv7/ls102xa/Kconfig"
 
+source "arch/arm/cpu/armv7/mx7ulp/Kconfig"
+
 source "arch/arm/cpu/armv7/mx7/Kconfig"
 
 source "arch/arm/cpu/armv7/mx6/Kconfig"
@@ -1176,6 +1197,10 @@ source "arch/arm/mach-uniphier/Kconfig"
 source "arch/arm/mach-zynq/Kconfig"
 
 source "arch/arm/cpu/armv7/Kconfig"
+
+source "arch/arm/cpu/armv8/imx8/Kconfig"
+
+source "arch/arm/cpu/armv8/imx8m/Kconfig"
 
 source "arch/arm/cpu/armv8/zynqmp/Kconfig"
 

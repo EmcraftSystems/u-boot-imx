@@ -116,8 +116,9 @@ ALL-y += checkarmreloc
 # instruction. Relocation is not supported for that case, so disable
 # such usage by requiring word relocations.
 PLATFORM_CPPFLAGS += $(call cc-option, -mword-relocations)
-PLATFORM_CPPFLAGS += $(call cc-option, -fno-pic)
 endif
+
+PLATFORM_CPPFLAGS += $(call cc-option, -fno-pic)
 
 # limit ourselves to the sections we want in the .bin.
 ifdef CONFIG_ARM64
@@ -134,6 +135,10 @@ endif
 
 ifdef CONFIG_EFI_LOADER
 OBJCOPYFLAGS += -j .efi_runtime -j .efi_runtime_rel
+endif
+
+ifdef CONFIG_IMX_M4_BIND
+OBJCOPYFLAGS += -j .firmware_image
 endif
 
 ifneq ($(CONFIG_IMX_CONFIG),)

@@ -2,7 +2,9 @@
  * (C) Copyright 2007
  * Sascha Hauer, Pengutronix
  *
- * (C) Copyright 2009 Freescale Semiconductor, Inc.
+ * (C) Copyright 2009-2016 Freescale Semiconductor, Inc.
+ *
+ * Copyright 2017 NXP
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
@@ -20,6 +22,10 @@
 #include <ipu_pixfmt.h>
 #include <thermal.h>
 #include <sata.h>
+
+#ifdef CONFIG_VIDEO_GIS
+#include <gis.h>
+#endif
 
 #ifdef CONFIG_FSL_ESDHC
 #include <fsl_esdhc.h>
@@ -60,6 +66,11 @@ static char *get_reset_cause(void)
 #ifdef CONFIG_MX7
 	case 0x00100:
 		return "WDOG4";
+	case 0x00200:
+		return "TEMPSENSE";
+#elif defined(CONFIG_IMX8M)
+	case 0x00100:
+		return "WDOG2";
 	case 0x00200:
 		return "TEMPSENSE";
 #else
@@ -137,6 +148,8 @@ unsigned imx_ddr_size(void)
 const char *get_imx_type(u32 imxtype)
 {
 	switch (imxtype) {
+	case MXC_CPU_IMX8MQ:
+		return "8MQ";	/* Quad-core version of the imx8m */
 	case MXC_CPU_MX7S:
 		return "7S";	/* Single-core version of the mx7 */
 	case MXC_CPU_MX7D:
@@ -176,10 +189,14 @@ int print_cpuinfo(void)
 {
 	u32 cpurev;
 	__maybe_unused u32 max_freq;
+#if defined(CONFIG_DBG_MONITOR)
+	struct dbg_monitor_regs *dbg =
+		(struct dbg_monitor_regs *)DEBUG_MONITOR_BASE_ADDR;
+#endif
 
 	cpurev = get_cpu_rev();
 
-#if defined(CONFIG_IMX_THERMAL)
+#if defined(CONFIG_IMX_THERMAL) || defined(CONFIG_NXP_TMU)
 	struct udevice *thermal_dev;
 	int cpu_tmp, minc, maxc, ret;
 
@@ -202,7 +219,7 @@ int print_cpuinfo(void)
 		mxc_get_clock(MXC_ARM_CLK) / 1000000);
 #endif
 
-#if defined(CONFIG_IMX_THERMAL)
+#if defined(CONFIG_IMX_THERMAL) || defined(CONFIG_NXP_TMU)
 	puts("CPU:   ");
 	switch (get_cpu_temp_grade(&minc, &maxc)) {
 	case TEMP_AUTOMOTIVE:
@@ -219,17 +236,30 @@ int print_cpuinfo(void)
 		break;
 	}
 	printf("(%dC to %dC)", minc, maxc);
+#if	defined(CONFIG_NXP_TMU)
+	ret = uclass_get_device_by_name(UCLASS_THERMAL, "cpu-thermal", &thermal_dev);
+#else
 	ret = uclass_get_device(UCLASS_THERMAL, 0, &thermal_dev);
+#endif
 	if (!ret) {
 		ret = thermal_get_temp(thermal_dev, &cpu_tmp);
 
 		if (!ret)
-			printf(" at %dC\n", cpu_tmp);
+			printf(" at %dC", cpu_tmp);
 		else
-			debug(" - invalid sensor data\n");
+			debug(" - invalid sensor data");
 	} else {
-		debug(" - invalid sensor device\n");
+		debug(" - invalid sensor device");
 	}
+	printf("\n");
+#endif
+
+#if defined(CONFIG_DBG_MONITOR)
+	if (readl(&dbg->snvs_addr))
+		printf("DBG snvs regs addr 0x%x, data 0x%x, info 0x%x\n",
+		       readl(&dbg->snvs_addr),
+		       readl(&dbg->snvs_data),
+		       readl(&dbg->snvs_info));
 #endif
 
 	printf("Reset cause: %s\n", get_reset_cause());
@@ -259,7 +289,7 @@ int cpu_mmc_init(bd_t *bis)
 }
 #endif
 
-#ifndef CONFIG_MX7
+#if !(defined(CONFIG_MX7) || defined(CONFIG_IMX8M))
 u32 get_ahb_clk(void)
 {
 	struct mxc_ccm_reg *imx_ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
@@ -281,15 +311,23 @@ void arch_preboot_os(void)
 	disable_sata_clock();
 #endif
 #endif
+#if defined(CONFIG_LDO_BYPASS_CHECK)
+	ldo_mode_set(check_ldo_bypass());
+#endif
 #if defined(CONFIG_VIDEO_IPUV3)
 	/* disable video before launching O/S */
 	ipuv3_fb_shutdown();
+#endif
+#ifdef CONFIG_VIDEO_GIS
+	/* Entry for GIS */
+	mxc_disable_gis();
 #endif
 #if defined(CONFIG_VIDEO_MXS)
 	lcdif_power_down();
 #endif
 }
 
+#ifndef CONFIG_IMX8M
 void set_chipselect_size(int const cs_size)
 {
 	unsigned int reg;
@@ -320,3 +358,4 @@ void set_chipselect_size(int const cs_size)
 
 	writel(reg, &iomuxc_regs->gpr[1]);
 }
+#endif
