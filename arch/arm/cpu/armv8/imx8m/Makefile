@@ -7,4 +7,4 @@
 ifdef CONFIG_SPL_BUILD
 obj-y	+= lowlevel_init.o
 endif
-obj-y	+= clock.o clock_slice.o soc.o
+obj-y	+= clock.o clock_slice.o clock_pll.o soc.o
