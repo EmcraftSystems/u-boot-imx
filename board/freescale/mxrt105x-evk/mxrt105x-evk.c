@@ -14,6 +14,7 @@
 #include <fsl_esdhc.h>
 #include <fsl_gpio.h>
 #include <fsl_enet.h>
+#include <fsl_iomuxc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -43,6 +44,21 @@ int board_early_init_f(void)
 
 	CLOCK_SetMux(kCLOCK_UartMux,1);
 	CLOCK_EnableClock(kCLOCK_Lpuart1);
+
+#if defined(CONFIG_FSL_FLEXSPI) && !defined(CONFIG_SPI_BOOT)
+	/* Configure FlexSPI clocks and pins (skip in case of booting
+	   from the QSPI Flash since the boot ROM did all the job) */
+
+	CLOCK_SetMux(kCLOCK_FlexspiMux, 0);
+	CLOCK_SetDiv(kCLOCK_FlexspiDiv, 1);
+
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_11_FLEXSPI_DATA03, 0);
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_10_FLEXSPI_DATA02, 0);
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_09_FLEXSPI_DATA01, 0);
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_08_FLEXSPI_DATA00, 0);
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_07_FLEXSPI_SCLK, 0);
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_06_FLEXSPI_SS0_B, 0);
+#endif
 
 	mxrt105x_evk_usb_init();
 
@@ -224,4 +240,3 @@ int board_fit_config_name_match(const char *name)
 	return -1;
 }
 #endif
-

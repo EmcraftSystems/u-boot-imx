@@ -50,3 +50,6 @@ obj-y	:= mxrt105x-evk.o	\
 	./devices/MIMXRT1052/utilities/fsl_io.o	\
 	./devices/MIMXRT1052/utilities/fsl_debug_console.o	\
 #	./devices/MIMXRT1052/drivers/fsl_edma.o	\
+
+flexspi_cb.bin: board/$(BOARDDIR)/flexspi_cb.o
+	$(OBJCOPY) -O binary board/$(BOARDDIR)/flexspi_cb.o $@
