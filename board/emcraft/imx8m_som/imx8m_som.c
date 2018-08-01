@@ -248,3 +248,9 @@ int is_recovery_key_pressing(void)
 }
 #endif /*CONFIG_ANDROID_RECOVERY*/
 #endif /*CONFIG_FSL_FASTBOOT*/
+
+ulong board_get_usable_ram_top(ulong total_size)
+{
+	return gd->ram_top > 0x100000000 ? 0x100000000 : gd->ram_top;
+}
+
