@@ -51,6 +51,7 @@
 u32 get_nr_cpus(void);
 u32 get_cpu_rev(void);
 u32 get_cpu_speed_grade_hz(void);
+u32 get_cpu_cortex_a53_count(void);
 u32 get_cpu_temp_grade(int *minc, int *maxc);
 const char *get_imx_type(u32 imxtype);
 u32 imx_ddr_size(void);

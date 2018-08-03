@@ -104,6 +104,16 @@ u32 get_cpu_temp_grade(int *minc, int *maxc)
 	return val;
 }
 
+u32 get_cpu_cortex_a53_count(void)
+{
+	struct ocotp_regs *ocotp = (struct ocotp_regs *)OCOTP_BASE_ADDR;
+	struct fuse_bank *bank = &ocotp->bank[1];
+	struct fuse_bank1_regs *fuse =
+		(struct fuse_bank1_regs *)bank->fuse_regs;
+
+	return (readl(&fuse->tester4) & 0x3) == 2 ? 2 : 4;
+}
+
 int timer_init(void)
 {
 #ifdef CONFIG_SPL_BUILD

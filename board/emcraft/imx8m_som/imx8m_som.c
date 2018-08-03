@@ -97,6 +97,48 @@ int dram_init(void)
 #ifdef CONFIG_OF_BOARD_SETUP
 int ft_board_setup(void *blob, bd_t *bd)
 {
+	int off;
+	fdt32_t *reg;
+	int addr_cells;
+	u64 core_id;
+
+	if (get_cpu_cortex_a53_count() == 4)
+		return 0;
+
+	/* remove references to cpu@2 and cpu@3 for i.MX8M Dual */
+
+	off = fdt_path_offset(blob, "/cpus");
+	if (off < 0) {
+		puts("couldn't find /cpus node\n");
+		return 0;
+	}
+	of_bus_default_count_cells(blob, off, &addr_cells, NULL);
+
+	off = fdt_node_offset_by_prop_value(blob, -1, "device_type", "cpu", 4);
+	while (off != -FDT_ERR_NOTFOUND) {
+		reg = (fdt32_t *)fdt_getprop(blob, off, "reg", 0);
+		if (reg) {
+			core_id = of_read_number(reg, addr_cells);
+			if (core_id > 1) {
+				fdt_del_node(blob, off);
+				/* start over after removing a node as off
+				   becomes invalid */
+				off = fdt_node_offset_by_prop_value(blob, -1,
+					"device_type", "cpu", 4);
+				continue;
+			}
+		}
+		off = fdt_node_offset_by_prop_value(blob, off, "device_type",
+			"cpu", 4);
+	}
+
+	off = fdt_path_offset(blob, "/pmu");
+	if (off != -FDT_ERR_NOTFOUND) {
+		reg = (fdt32_t *)fdt_getprop(blob, off, "interrupt-affinity", 0);
+		if (reg)
+			fdt_setprop(blob, off, "interrupt-affinity", reg, 8);
+	}
+
 	return 0;
 }
 #endif
