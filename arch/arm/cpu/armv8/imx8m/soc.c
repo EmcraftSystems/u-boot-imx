@@ -228,16 +228,28 @@ u32 get_cpu_rev(void)
 
 	reg &= 0xff;
 
-	if (reg == 0x10) {
-		/* For B0 chip, the DIGPROG is not updated, still TO1.0.
-		 * we have to check ROM version further
-		 */
-		uint32_t rom_version;
-		rom_version = readl((void __iomem *)0x800);
-		if (rom_version != 0x10) {
-			rom_version = readl((void __iomem *)0x83c);
-			if (rom_version >= 0x20)
-				reg = 0x20;
+	/* iMX8MM */
+	 if (major_low == 0x41) {
+		return ((type + 1) << 12) | reg;
+	} else {
+		/* iMX8MQ */
+		if (reg == 0x10) {
+			/* For B0 chip, the DIGPROG is not updated, still TO1.0.
+			 * we have to check ROM version or OCOTP_READ_FUSE_DATA
+			 */
+			if (readl((void __iomem *)(OCOTP_BASE_ADDR + 0x40))
+				== 0xff0055aa) {
+				/* 0xff0055aa is magic number for B1 */
+				reg = 0x21;
+			} else {
+				uint32_t rom_version;
+				rom_version = readl((void __iomem *)0x800);
+				if (rom_version != 0x10) {
+					rom_version = readl((void __iomem *)0x83c);
+					if (rom_version == 0x20)
+						reg = 0x20;
+				}
+			}
 		}
 	}
 
