@@ -79,11 +79,16 @@ struct nxp_tmu_plat {
 static int read_temperature(struct udevice *dev, int *temp)
 {
 	struct nxp_tmu_plat *pdata = dev_get_platdata(dev);
+	int retry = 5;
 	u32 val;
 
 	do {
+		udelay(10000);
 		val = readl(&pdata->regs->site[pdata->id].tritsr);
-	} while (!(val & 0x80000000));
+	} while (!(val & 0x80000000) && --retry);
+
+	if (!retry)
+		return -EBUSY;
 
 	*temp = (val & 0xff) * 1000;
 
