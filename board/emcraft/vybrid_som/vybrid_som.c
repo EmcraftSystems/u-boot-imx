@@ -135,7 +135,7 @@ void ddr_phy_init(void)
 #define PHY_MASTER_CTRL		0x0001012a
 #define PHY_SLAVE_CTRL		0x00012020
 #endif
-  
+
   	// phy_dq_timing_reg freq set 0
 	__raw_writel(PHY_DQ_TIMING, DDR_PHY000);
 	__raw_writel(PHY_DQ_TIMING, DDR_PHY016);
@@ -176,7 +176,7 @@ unsigned long ddr_ctrl_init(void)
 	int i;
 
 	//Turn on clock gating
-	//CCM->CCGR6 |= 0x30000000;        
+	//CCM->CCGR6 |= 0x30000000;
 
 	//
 	// Dram Device Parameters
@@ -344,7 +344,7 @@ unsigned long ddr_ctrl_init(void)
 	__raw_writel(0x00040000, DDR_CR088);	// todtl_2cmd
 						// todtl_2cmd = odtl_off = CWL + AL - 2ck
 	__raw_writel(0x00000002, DDR_CR089);	// add_odt stuff
-	__raw_writel(0x00020000, DDR_CR091);	
+	__raw_writel(0x00020000, DDR_CR091);
 	__raw_writel(0x00000000, DDR_CR092);	// tdqsck_min, _max, w2w_smcsdl
 
 	__raw_writel(0x00002819, DDR_CR096);	// wlmrd, wldqsen
@@ -447,12 +447,12 @@ int dram_init(void)
 #endif
 	int_stat = 0;
 	wait_cntr = 0;
-	while((int_stat == 0) & (wait_cntr < WAIT_DDR_INIT)){ 	
+	while((int_stat == 0) & (wait_cntr < WAIT_DDR_INIT)){
 	int_stat =(__raw_readl(DDR_CR080) >> 8) & 1; // check if DDR controller is initialized;
 	wait_cntr = wait_cntr + 1;
 	}
 	if (int_stat) {
-        puts ("DDR controller is initialized\n");	
+        puts ("DDR controller is initialized\n");
 	}
 	else {
 	puts ("DDR controller is not initialized\n");
@@ -911,7 +911,7 @@ int do_set_boot_media(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		wait4Busy();
 		read_fuse_word(bank_num*8+word_num);
 		wait4Busy();
-		
+
 		if(((*(unsigned int *)HW_OCOTP_READ_FUSE_DATA_ADDR)&(unsigned int)fuse_val<<(byte_pos*8)) ^ ((unsigned int)fuse_val<<(byte_pos*8)) == 0x0)
 			;  //no use. Just to remove if
 		else
@@ -1309,12 +1309,11 @@ int splash_screen_prepare(void)
 
 	bmp_load_addr = simple_strtoul (s, NULL, 16);
 
-#ifdef SPLASH1_FLASH_BASE
-	splash_screen_nand_offset = getenv_ulong("splash_offset", 16,
-			(u32)SPLASH1_FLASH_BASE);
-#else
-	splash_screen_nand_offset = simple_strtoul (SPLASH_FLASH_BASE, NULL, 16);
-#endif
+	if ((s = getenv("splash_offset")) == NULL) {
+		return -1;
+	}
+
+	splash_screen_nand_offset = simple_strtoul (s, NULL, 16);
 
         if (bmp_load_addr + bmp_header_size >= gd->start_addr_sp)
                 goto splash_address_too_high;
