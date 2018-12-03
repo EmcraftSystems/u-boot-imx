@@ -14,6 +14,7 @@
 #include <fsl_esdhc.h>
 #include <fsl_gpio.h>
 #include <fsl_enet.h>
+#include <fsl_iomuxc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -49,6 +50,20 @@ int board_early_init_f(void)
 	CLOCK_EnableClock(kCLOCK_Lpuart1);
 	CLOCK_EnableClock(kCLOCK_Pit);
 	CLOCK_EnableClock(kCLOCK_Dma);
+
+#if defined(CONFIG_FSL_FLEXSPI) && !defined(CONFIG_SPI_BOOT)
+	/* Configure FlexSPI clocks and pins */
+
+	CLOCK_SetMux(kCLOCK_FlexspiMux, 0);
+	CLOCK_SetDiv(kCLOCK_FlexspiDiv, 1);
+
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_11_FLEXSPIA_DATA03, 0);
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_10_FLEXSPIA_DATA02, 0);
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_09_FLEXSPIA_DATA01, 0);
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_08_FLEXSPIA_DATA00, 0);
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_07_FLEXSPIA_SCLK, 0);
+	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_06_FLEXSPIA_SS0_B,0);
+#endif
 
 	mxrt105x_evk_usb_init();
 

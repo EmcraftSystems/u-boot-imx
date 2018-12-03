@@ -19,7 +19,14 @@
 
 #define CONFIG_SYS_ARCH_TIMER
 
+#if defined CONFIG_SPI_BOOT
+#define CONFIG_SYS_TEXT_BASE		0x60001718
+#define IMX_FLEXSPI_CONFIG_BLOCK
+#else
 #define CONFIG_SYS_TEXT_BASE		0x20241000
+#endif
+
+#define CONFIG_SYS_CLK_FREQ		600000000 /* 600 MHz */
 
 /*
  * To get Image data right at the 'Load Address' (0x80008000), and thus avoid
@@ -44,7 +51,7 @@
 #define CONFIG_SYS_MEMTEST_START	PHYS_SDRAM
 #define CONFIG_SYS_MEMTEST_END      	(CONFIG_SYS_MEMTEST_START + PHYS_SDRAM_SIZE - (2 * 1024 * 1024))
 
-#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_TEXT_BASE + 384 * 1024)
+#define CONFIG_SYS_INIT_SP_ADDR		(0x20241000 + 384 * 1024)
 
 #define CONFIG_BOUNCE_BUFFER
 #define CONFIG_FSL_ESDHC
@@ -101,9 +108,16 @@
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 
+#if defined(CONFIG_CMD_SF) && defined(CONFIG_ENV_IS_IN_SPI_FLASH)
+/* Environemnt is in SPI flash */
+#define CONFIG_ENV_SIZE			(0x10000)
+#define CONFIG_SYS_REDUNDAND_ENVIRONMENT
+#define CONFIG_ENV_OFFSET		0x50000		/* 256K */
+#define CONFIG_ENV_OFFSET_REDUND	(CONFIG_ENV_OFFSET + CONFIG_ENV_SIZE)
+#define CONFIG_ENV_SECT_SIZE		0x10000
+#else
 #define CONFIG_ENV_SIZE			(8 << 10)
-
-#define CONFIG_SYS_CLK_FREQ		600000000 /* 600 MHz */
+#endif
 
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -123,14 +137,61 @@
 #define CONFIG_BOOTARGS							\
 	"console=ttyLP0,115200 consoleblank=0 ignore_loglevel "
 
+#if defined(CONFIG_SPI_BOOT) && defined(CONFIG_CMD_SF)
 #define CONFIG_BOOTCOMMAND						\
+	"run sfboot"
+
+#define CONFIG_BOOTARGS							\
+	"ubi.mtd=4 rootfstype=ubifs root=ubi0:rootfs rw"
+
+#else
+#define CONFIG_BOOTCOMMAND			\
 	"run mmcboot"
 
-#define CONFIG_PREBOOT \
+#define CONFIG_BOOTARGS							\
+	"console=ttyLP0,115200 consoleblank=0 ignore_loglevel "
+
+#define CONFIG_PREBOOT							\
 	"fatload mmc 0 ${loadaddr} ${splash} && bmp display ${loadaddr};" \
 	"fatexec mmc 0 ${ini}"
+#endif
 
-#define CONFIG_EXTRA_ENV_SETTINGS \
+#if defined(CONFIG_CMD_SF)
+#define _EXTRA_SF_ENV_SETTINGS						\
+	"sfboot=sf probe 0 && sf read ${loadaddr}"			\
+		" ${kernel_sf_offset} ${kernel_sf_size} &&"		\
+		" sf read ${fdt_addr_r} ${dtb_sf_offset}"		\
+		" ${dtb_sf_size} && bootm ${loadaddr} - ${fdt_addr_r}\0"\
+	"fdt_addr_r=0x81000000\0"					\
+	"uboot_sf_offset=0x0\0"						\
+	"uboot_sf_size=0x50000\0"					\
+	"dtb_sf_offset=0x70000\0"					\
+	"dtb_sf_size=0x10000\0"						\
+	"kernel_sf_offset=0x80000\0"					\
+	"kernel_sf_size=0x400000\0"					\
+	"rootfs_sf_offset=0x480000\0"					\
+	"rootfs_sf_size=0x380000\0"					\
+	"image=rootfs_ubi.uImage\0"					\
+	"sf_kernel_update=fatload mmc 0 ${loadaddr} ${image} &&"	\
+		" sf erase ${kernel_sf_offset} ${kernel_sf_size} &&"	\
+		" sf write ${loadaddr} ${kernel_sf_offset} ${filesize}\0"\
+	"dtb=rootfs_ubi.dtb\0"						\
+	"sf_dtb_update=fatload mmc 0 ${loadaddr} ${dtb} &&"		\
+		" sf erase ${dtb_sf_offset} ${dtb_sf_size} &&"		\
+		" sf write ${loadaddr} ${dtb_sf_offset} ${filesize}\0"	\
+	"rootfs=rootfs.ubi\0"						\
+	"sf_rootfs_update=fatload mmc 0 ${loadaddr} ${rootfs} &&"	\
+		" sf erase ${rootfs_sf_offset} ${rootfs_sf_size} &&"	\
+		" sf write ${loadaddr} ${rootfs_sf_offset} ${filesize}\0"\
+	"uboot=u-boot.flexspi\0"					\
+	"sf_uboot_update=fatload mmc 0 ${loadaddr} ${uboot} &&"		\
+		" sf erase ${uboot_sf_offset} ${uboot_sf_size} &&"	\
+		" sf write ${loadaddr} ${uboot_sf_offset} ${filesize}\0"
+#else
+#define _EXTRA_SF_ENV_SETTINGS
+#endif
+
+#define CONFIG_EXTRA_ENV_SETTINGS					\
 	"videomode=video=ctfb:x:480,y:272,depth:24,pclk:9300000,le:4,"	\
 		"ri:8,up:4,lo:8,hs:41,vs:10,sync:0,vmode:0\0"		\
 	"addip=setenv bootargs ${bootargs} ip=${ipaddr}:${serverip}:"	\
@@ -155,7 +216,8 @@
 	"mmc_update_kernel=tftp ${tftpdir}${image} &&" \
 		" fatwrite mmc 0 ${loadaddr} ${image} ${filesize}\0" \
 	"mmc_update_splash=tftp ${tftpdir}${splash} &&" \
-		" fatwrite mmc 0 ${loadaddr} ${splash} ${filesize}\0"
+		" fatwrite mmc 0 ${loadaddr} ${splash} ${filesize}\0" \
+	_EXTRA_SF_ENV_SETTINGS
 
 /*
  * Command line configuration.

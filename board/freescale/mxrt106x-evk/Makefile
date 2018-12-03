@@ -25,3 +25,6 @@ obj-y	:= mxrt106x-evk.o	\
 	./board/src/fsl_sdram.o \
 	./drivers/fsl_usdhc.o	\
 	./drivers/fsl_enet.o
+
+flexspi_cb.bin: board/$(BOARDDIR)/flexspi_cb.o
+	$(OBJCOPY) -O binary board/$(BOARDDIR)/flexspi_cb.o $@
