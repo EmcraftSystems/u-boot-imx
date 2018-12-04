@@ -417,8 +417,7 @@ static void fsl_flexspi_init_ahb_read(struct fsl_flexspi *flex)
 	       base + FLEXSPI_AHBCR);
 
 	/* Set the default lut sequence for AHB Read. */
-	seqid = fsl_flexspi_get_seqid(flex,
-			fsl_flexspi_get_seqid(flex, SPINOR_OP_READ_1_4_4/*CONFIG_FLASH_READ_CMD*/));
+	seqid = fsl_flexspi_get_seqid(flex, SPINOR_OP_READ_1_4_4);
 	writel(seqid, base + FLEXSPI_FLSHA1CR2);
 }
 

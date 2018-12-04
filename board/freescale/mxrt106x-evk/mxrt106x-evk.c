@@ -54,8 +54,10 @@ int board_early_init_f(void)
 #if defined(CONFIG_FSL_FLEXSPI) && !defined(CONFIG_SPI_BOOT)
 	/* Configure FlexSPI clocks and pins */
 
+	CLOCK_EnableClock(kCLOCK_FlexSpi);
+
 	CLOCK_SetMux(kCLOCK_FlexspiMux, 0);
-	CLOCK_SetDiv(kCLOCK_FlexspiDiv, 1);
+	CLOCK_SetDiv(kCLOCK_FlexspiDiv, 3);
 
 	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_11_FLEXSPIA_DATA03, 0);
 	IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B1_10_FLEXSPIA_DATA02, 0);
