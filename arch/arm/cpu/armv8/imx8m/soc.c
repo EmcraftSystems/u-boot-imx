@@ -225,6 +225,7 @@ u32 get_cpu_rev(void)
 {
 	u32 reg = readl((void __iomem *)DIGPROG);
 	u32 type = (reg >> 16) & 0xff;
+	u32 major_low = (reg >> 8) & 0xff;
 
 	reg &= 0xff;
 
