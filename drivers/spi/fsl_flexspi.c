@@ -82,6 +82,7 @@ static inline void fsl_flexspi_lock_lut(struct fsl_flexspi_priv *flex)
 #define SEQID_SE		3
 #define SEQID_PP		4
 #define SEQID_RDID		5
+#define SEQID_WRSR		6
 
 /* SPI NOR command codes */
 #define SPINOR_OP_PP		0x02	/* Page program (up to 256 bytes) */
@@ -141,6 +142,11 @@ static void flexspi_set_lut(struct fsl_flexspi_priv *priv)
 	writel(LUT0(CMD, PAD1, SPINOR_OP_RDID) | LUT1(FSL_READ, PAD1, 0x8),
 			base + FLEXSPI_LUT(lut_base));
 
+	/* Write Register */
+	lut_base = SEQID_WRSR * 4;
+	writel(LUT0(CMD, PAD1, SPINOR_OP_WRSR) | LUT1(FSL_WRITE, PAD1, 0x2),
+			base + FLEXSPI_LUT(lut_base));
+
 	fsl_flexspi_lock_lut(priv);
 }
 
@@ -162,6 +168,8 @@ static int fsl_flexspi_get_seqid(struct fsl_flexspi_priv *flex, u8 cmd)
 		return SEQID_RDSR;
 	case SPINOR_OP_RDID:
 		return SEQID_RDID;
+	case SPINOR_OP_WRSR:
+		return SEQID_WRSR;
 	default:
 		printf("FlexSPI: Unsupported cmd 0x%.2x\n", cmd);
 		break;
@@ -345,7 +353,8 @@ static int flexspi_xfer(struct fsl_flexspi_priv *priv, unsigned int bitlen,
 			if (priv->cur_seqid == -1) {
 				return -1;
 			}
-			if (priv->cur_seqid == SEQID_WREN) {
+			if (priv->cur_seqid == SEQID_WREN ||
+				priv->cur_seqid == SEQID_WRSR) {
 				fsl_flexspi_runcmd(priv, 0, 0);
 			}
 			if (priv->cur_seqid == SEQID_SE) {
@@ -354,7 +363,8 @@ static int flexspi_xfer(struct fsl_flexspi_priv *priv, unsigned int bitlen,
 			}
 		}
 		if (flags == SPI_XFER_END) {
-			if (priv->cur_seqid == SEQID_PP) {
+			if (priv->cur_seqid == SEQID_PP ||
+				priv->cur_seqid == SEQID_WRSR) {
 				fsl_flexspi_write(priv, priv->sf_addr, (u32 *)dout, bytes);
 			}
 			return 0;
