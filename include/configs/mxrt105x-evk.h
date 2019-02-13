@@ -137,7 +137,7 @@
 #define CONFIG_BOOTCOMMAND						\
 	"run sfboot"
 
-#if 1
+#if 0
 #define ROOTFS_TYPE jffs2
 #define CONFIG_BOOTARGS							\
 	"rootfstype=jffs2 root=/dev/mtdblock4 rw"
@@ -174,15 +174,15 @@
 	"kernel_sf_size=0x400000\0"					\
 	"rootfs_sf_offset=0x480000\0"					\
 	"rootfs_sf_size=0x380000\0"					\
-	"image=rootfs_flash.uImage\0"					\
+	"image=rootfs_ubi.uImage\0"					\
 	"sf_kernel_update=fatload mmc 0 ${loadaddr} ${image} &&"	\
 		" sf erase ${kernel_sf_offset} ${kernel_sf_size} &&"	\
 		" sf write ${loadaddr} ${kernel_sf_offset} ${filesize}\0"\
-	"dtb=rootfs_flash.dtb\0"					\
+	"dtb=rootfs_ubi.dtb\0"					\
 	"sf_dtb_update=fatload mmc 0 ${loadaddr} ${dtb} &&"		\
 		" sf erase ${dtb_sf_offset} ${dtb_sf_size} &&"		\
 		" sf write ${loadaddr} ${dtb_sf_offset} ${filesize}\0"	\
-	"rootfs=rootfs_flash."__stringify(ROOTFS_TYPE)"\0"		\
+	"rootfs=rootfs."__stringify(ROOTFS_TYPE)"\0"		\
 	"sf_rootfs_update=fatload mmc 0 ${loadaddr} ${rootfs} &&"	\
 		" sf erase ${rootfs_sf_offset} ${rootfs_sf_size} &&"	\
 		" sf write ${loadaddr} ${rootfs_sf_offset} ${filesize}\0"\
