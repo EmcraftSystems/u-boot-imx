@@ -56,10 +56,10 @@ static void BOARD_BootClockGate(void)
     /* Disable all unused peripheral clock */
     CCM->CCGR0 = CCGR(kCLOCK_Gpio2) | CCGR(kCLOCK_Trace)
 	    | CCGR(kCLOCK_SimM_or_SimMain_Reg) | CCGR(kCLOCK_FlexSpi_Exsc)
-	    | CCGR(kCLOCK_Lpspi1) | CCGR(kCLOCK_Lpspi2)
 	    | CCGR(kCLOCK_Aips_tz2) | CCGR(kCLOCK_Aips_tz1); /* 0xC0C003CF */
     CCM->CCGR1 = CCGR(kCLOCK_Gpio5) | CCGR(kCLOCK_Csu)
 	    | CCGR(kCLOCK_Gpio1) | CCGR(kCLOCK_Semc_Exsc)
+	    | CCGR(kCLOCK_Lpspi1) | CCGR(kCLOCK_Lpspi2)
 	    | CCGR(kCLOCK_Pit); /* 0xFC0C3000 */
     CCM->CCGR2 = CCGR(kCLOCK_Gpio3) | CCGR(kCLOCK_Ipmux3)
 	    | CCGR(kCLOCK_Ipmux2) | CCGR(kCLOCK_Ipmux1)
