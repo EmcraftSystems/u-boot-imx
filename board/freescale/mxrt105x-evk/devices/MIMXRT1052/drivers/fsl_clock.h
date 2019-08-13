@@ -100,7 +100,7 @@ extern uint32_t g_rtcXtalFreq;
  /*! @brief Clock ip name array for ADC. */
 #define ADC_CLOCKS                                                   \
     {                                                                \
-        kCLOCK_IpInvalid, kCLOCK_Adc1                                \
+        kCLOCK_IpInvalid, kCLOCK_Adc1, KCLOCK_Adc2		     \
     }
 
 /*! @brief Clock ip name array for ADC_5HC. */
@@ -385,7 +385,7 @@ typedef enum _clock_ip_name
     kCLOCK_Lpspi2               = (1U << 8U) | CCM_CCGR1_CG1_SHIFT,        /*!< CCGR1, CG1   */
     kCLOCK_Lpspi3               = (1U << 8U) | CCM_CCGR1_CG2_SHIFT,        /*!< CCGR1, CG2   */
     kCLOCK_Lpspi4               = (1U << 8U) | CCM_CCGR1_CG3_SHIFT,        /*!< CCGR1, CG3   */
-    kCLOCK_Adc_5hc              = (1U << 8U) | CCM_CCGR1_CG4_SHIFT,        /*!< CCGR1, CG4   */
+    kCLOCK_Adc2                 = (1U << 8U) | CCM_CCGR1_CG4_SHIFT,        /*!< CCGR1, CG4   */
     kCLOCK_Enet                 = (1U << 8U) | CCM_CCGR1_CG5_SHIFT,        /*!< CCGR1, CG5   */
     kCLOCK_Pit                  = (1U << 8U) | CCM_CCGR1_CG6_SHIFT,        /*!< CCGR1, CG6   */
     kCLOCK_Aoi2                 = (1U << 8U) | CCM_CCGR1_CG7_SHIFT,        /*!< CCGR1, CG7   */

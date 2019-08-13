@@ -59,7 +59,8 @@ static void BOARD_BootClockGate(void)
 	    | CCGR(kCLOCK_Aips_tz2) | CCGR(kCLOCK_Aips_tz1); /* 0xC0C003CF */
     CCM->CCGR1 = CCGR(kCLOCK_Gpio5) | CCGR(kCLOCK_Csu)
 	    | CCGR(kCLOCK_Gpio1) | CCGR(kCLOCK_Semc_Exsc)
-	    | CCGR(kCLOCK_Pit); /* 0xFC0C3000 */
+	    | CCGR(kCLOCK_Pit) | CCGR(kCLOCK_Adc1)
+	    | CCGR(kCLOCK_Adc2); /* 0xFC0F3300 */
     CCM->CCGR2 = CCGR(kCLOCK_Gpio3) | CCGR(kCLOCK_Ipmux3)
 	    | CCGR(kCLOCK_Ipmux2) | CCGR(kCLOCK_Ipmux1)
 	    | CCGR(kCLOCK_IomuxcSnvs) | CCGR(kCLOCK_Ocram_Excs); /* 0x0C3F0033 */
