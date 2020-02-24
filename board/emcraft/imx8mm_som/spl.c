@@ -14,6 +14,7 @@
 #include <asm/arch/sys_proto.h>
 #include <power/pmic.h>
 #include <power/bd71837.h>
+#include <power/pca9450.h>
 #include <asm/arch/clock.h>
 #include <asm/mach-imx/gpio.h>
 #include <asm/mach-imx/mxc_i2c.h>
@@ -157,6 +158,67 @@ int board_mmc_getcd(struct mmc *mmc)
 }
 
 #ifdef CONFIG_POWER
+#if defined(CONFIG_POWER_PCA9450)
+
+#define I2C_PMIC	0
+int power_init_board(void)
+{
+	struct pmic *p;
+	int ret;
+
+	ret = power_pca9450_init(I2C_PMIC);
+	if (ret)
+		printf("power init failed");
+
+	p = pmic_get("PCA9450");
+	pmic_probe(p);
+
+	/* BUCKxOUT_DVS0/1 control BUCK123 output */
+	pmic_reg_write(p, PCA9450_BUCK123_DVS, 0x29);
+
+	/* Buck 1 DVS control through PMIC_STBY_REQ */
+	pmic_reg_write(p, PCA9450_BUCK1CTRL, 0x59);
+
+	/* decrease RESET key long push time from the default 10s to 10ms */
+	/* Ton_Deb of PCA9450 is 20ms and don't change */
+
+	/* decrease VDD_SOC to 0.80v during standby mode by PMIC_STBY_REQ */
+	pmic_reg_write(p, PCA9450_BUCK1OUT_DVS1, 0x10);
+
+	/* Buck3 is off, because Buck3 don't use in i.MX8M nano */
+	pmic_reg_write(p, PCA9450_BUCK3CTRL, 0x48);
+
+	/* set VDD_SNVS_0V8 from default 0.85V */
+	pmic_reg_write(p, PCA9450_LDO2CTRL, 0xC0);
+
+#ifdef CONFIG_IMX8MN_FORCE_NOM_SOC
+	/* increase VDD_ARM to typical value 0.85v for 1.2Ghz */
+	/* PCA9450's default is 0.85v */
+	/* pmic_reg_write(p, PCA9450_BUCK2OUT_DVS0, 0x14); */
+
+	/* increase VDD_SOC/VDD_DRAM to typical value 0.85v for nominal mode */
+	pmic_reg_write(p, PCA9450_BUCK1OUT_DVS0, 0x14);
+#else
+	/* increase VDD_SOC/VDD_DRAM to typical value 0.95v for 3Ghz DDRs */
+	pmic_reg_write(p, PCA9450_BUCK1OUT_DVS0, 0x1C);
+#endif
+
+#if defined(CONFIG_TARGET_EMCRAFT_IMX8MN_DDR3L_SOM)
+	/* increase NVCC_DRAM_1V2 to 1.35v for DDR3L */
+	pmic_reg_write(p, PCA9450_BUCK6OUT, 0x1E);
+#elif defined(CONFIG_TARGET_EMCRAFT_IMX8MM_CUBE)
+	/* increase NVCC_DRAM_1V2 to 1.2v for DDR4 */
+	pmic_reg_write(p, PCA9450_BUCK6OUT, 0x18);
+#endif
+
+	/* set WDOG_B_CFG to 10b=Cold Reset, except LDO1/2 */
+	pmic_reg_write(p, PCA9450_RESET_CTRL, 0xA1);
+
+	return 0;
+}
+
+#elif defined (CONFIG_POWER_BD71837)
+
 #define I2C_PMIC	0
 int power_init_board(void)
 {
@@ -190,6 +252,8 @@ int power_init_board(void)
 
 	return 0;
 }
+
+#endif
 #endif
 
 void spl_board_init(void)

@@ -52,7 +52,11 @@
 
 #define CONFIG_POWER
 #define CONFIG_POWER_I2C
+#if defined(CONFIG_TARGET_EMCRAFT_IMX8MM_CUBE)
+#define CONFIG_POWER_PCA9450
+#else
 #define CONFIG_POWER_BD71837
+#endif
 
 #define CONFIG_SYS_I2C
 #define CONFIG_SYS_I2C_MXC_I2C1		/* enable I2C bus 1 */
@@ -249,6 +253,8 @@
 #define PHYS_SDRAM_SIZE			0x40000000 /* 1GB DDR */
 #elif defined(CONFIG_TARGET_EMCRAFT_IMX8MM_SOM_3GB)
 #define PHYS_SDRAM_SIZE			0xC0000000 /* 3GB DDR */
+#elif defined(CONFIG_TARGET_EMCRAFT_IMX8MM_CUBE)
+#define PHYS_SDRAM_SIZE			0x20000000 /* 512MB DDR */
 #else
 #error Undefined SDRAM size!
 #endif

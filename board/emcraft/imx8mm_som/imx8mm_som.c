@@ -749,6 +749,16 @@ int board_late_init(void)
 	return 0;
 }
 
+int board_usb_phy_mode(int port)
+{
+	return USB_INIT_DEVICE;
+}
+
+int board_ehci_usb_phy_mode(struct udevice *dev)
+{
+	return USB_INIT_DEVICE;
+}
+
 #ifdef CONFIG_FSL_FASTBOOT
 #ifdef CONFIG_ANDROID_RECOVERY
 int is_recovery_key_pressing(void)

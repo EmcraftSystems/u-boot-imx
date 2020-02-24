@@ -110,6 +110,12 @@ config TARGET_EMCRAFT_IMX8MM_SOM_3GB
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
 
+config TARGET_EMCRAFT_IMX8MM_CUBE
+	bool "i.MX8M Mini Cube"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_DDR4
+
 endchoice
 
 config SYS_SOC
