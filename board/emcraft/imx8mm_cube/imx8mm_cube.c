@@ -234,16 +234,16 @@ int pd_switch_snk_enable(struct tcpc_port *port)
 {
 	if (port == &port1) {
 		debug("Setup pd switch on port 1\n");
-		return setup_pd_switch(1, 0x72);
+		return setup_pd_switch(2, 0x72);
 	} else if (port == &port2) {
 		debug("Setup pd switch on port 2\n");
-		return setup_pd_switch(1, 0x73);
+		return setup_pd_switch(2, 0x73);
 	} else
 		return -EINVAL;
 }
 
 struct tcpc_port_config port1_config = {
-	.i2c_bus = 1, /*i2c2*/
+	.i2c_bus = 2, /*i2c3*/
 	.addr = 0x50,
 	.port_type = TYPEC_PORT_UFP,
 	.max_snk_mv = 5000,
@@ -254,7 +254,7 @@ struct tcpc_port_config port1_config = {
 };
 
 struct tcpc_port_config port2_config = {
-	.i2c_bus = 1, /*i2c2*/
+	.i2c_bus = 2, /*i2c3*/
 	.addr = 0x52,
 	.port_type = TYPEC_PORT_UFP,
 	.max_snk_mv = 5000,
