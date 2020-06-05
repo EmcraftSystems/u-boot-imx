@@ -244,17 +244,6 @@ int pd_switch_snk_enable(struct tcpc_port *port)
 
 struct tcpc_port_config port1_config = {
 	.i2c_bus = 2, /*i2c3*/
-	.addr = 0x50,
-	.port_type = TYPEC_PORT_UFP,
-	.max_snk_mv = 5000,
-	.max_snk_ma = 3000,
-	.max_snk_mw = 40000,
-	.op_snk_mv = 9000,
-	.switch_setup_func = &pd_switch_snk_enable,
-};
-
-struct tcpc_port_config port2_config = {
-	.i2c_bus = 2, /*i2c3*/
 	.addr = 0x52,
 	.port_type = TYPEC_PORT_UFP,
 	.max_snk_mv = 5000,
@@ -267,17 +256,6 @@ struct tcpc_port_config port2_config = {
 static int setup_typec(void)
 {
 	int ret;
-
-	debug("tcpc_init port 2\n");
-	ret = tcpc_init(&port2, port2_config, NULL);
-	if (ret) {
-		printf("%s: tcpc port2 init failed, err=%d\n",
-		       __func__, ret);
-	} else if (tcpc_pd_sink_check_charging(&port2)) {
-		/* Disable PD for USB1, since USB2 has priority */
-		port1_config.disable_pd = true;
-		printf("Power supply on USB2\n");
-	}
 
 	debug("tcpc_init port 1\n");
 	ret = tcpc_init(&port1, port1_config, NULL);
