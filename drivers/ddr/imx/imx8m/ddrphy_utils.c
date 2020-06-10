@@ -84,9 +84,10 @@ static inline void decode_streaming_message(void)
 	debug("\n");
 }
 
-void wait_ddrphy_training_complete(void)
+int wait_ddrphy_training_complete(void)
 {
 	unsigned int mail;
+	int ret = 0;
 
 	while (1) {
 		mail = get_mail();
@@ -97,10 +98,13 @@ void wait_ddrphy_training_complete(void)
 			debug("Training PASS\n");
 			break;
 		} else if (mail == 0xff) {
-			printf("Training FAILED\n");
+			debug("Training FAILED\n");
+			ret = -1;
 			break;
 		}
 	}
+
+	return ret;
 }
 
 void ddrphy_init_set_dfi_clk(unsigned int drate)

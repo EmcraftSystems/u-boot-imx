@@ -23,9 +23,23 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+extern struct dram_timing_info dram_timing_2g;
+
 void spl_dram_init(void)
 {
-	ddr_init(&dram_timing);
+	if (ddr_init(&dram_timing)) {
+		ddr_init(&dram_timing_2g);
+		return;
+	}
+
+	/* check if writing to 3rd GB modifies 1st GB */
+	*(unsigned long *)PHYS_SDRAM = 0;
+	*(unsigned long *)(PHYS_SDRAM + SZ_2G) = 0xaabbccdd;
+	flush_dcache_range(PHYS_SDRAM, PHYS_SDRAM + SZ_2G + SZ_512);
+	if (*(unsigned long *)PHYS_SDRAM == 0xaabbccdd) {
+		ddr_init(&dram_timing_2g);
+		return;
+	}
 }
 
 #define I2C_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PE)
