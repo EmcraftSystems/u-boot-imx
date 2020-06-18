@@ -27,6 +27,9 @@ extern struct dram_timing_info dram_timing_2g;
 
 void spl_dram_init(void)
 {
+#ifdef CONFIG_IMX8M_DDR4
+	ddr_init(&dram_timing);
+#else
 	if (ddr_init(&dram_timing)) {
 		ddr_init(&dram_timing_2g);
 		return;
@@ -40,6 +43,7 @@ void spl_dram_init(void)
 		ddr_init(&dram_timing_2g);
 		return;
 	}
+#endif
 }
 
 #define I2C_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PE)

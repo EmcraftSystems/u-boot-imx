@@ -256,10 +256,14 @@
 #define PHYS_SDRAM                      0x40000000
 
 #undef PHYS_SDRAM_SIZE
-#ifdef CONFIG_IMX8M_2G_LPDDR4
-#define PHYS_SDRAM_SIZE			0x80000000 /* 2GB DDR */
-#else
-#define PHYS_SDRAM_SIZE			0x80000000 /* 3GB DDR */
+#ifdef CONFIG_IMX8M_LPDDR4
+ #ifdef CONFIG_IMX8M_2G_LPDDR4
+  #define PHYS_SDRAM_SIZE			0x80000000 /* 2GB DDR */
+ #else
+  #define PHYS_SDRAM_SIZE			0x80000000 /* 3GB DDR */
+ #endif
+#else /* CONFIG_IMX8M_DDR4 */
+  #define PHYS_SDRAM_SIZE			0x20000000 /* 512MB DDR */
 #endif
 
 #define CONFIG_SYS_MEMTEST_START	PHYS_SDRAM
