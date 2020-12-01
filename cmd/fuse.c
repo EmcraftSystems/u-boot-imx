@@ -132,6 +132,91 @@ err:
 	return CMD_RET_FAILURE;
 }
 
+static int macstr_to_char(const char *str, unsigned char *mac)
+{
+	char octet[3], *ret;
+	char *p = (char *)str;
+	int i;
+
+	if (strlen(str) != (6 * 3 -1)) {
+		return -1;
+	}
+
+	octet[2] = 0;
+	for (i = 0; (i < 6); i++, p+=3) {
+		octet[0] = p[0];
+		octet[1] = p[1];
+
+		mac[i] = simple_strtoul(octet, &ret, 16);
+		if (ret != &octet[2]) {
+			return -1;
+		}
+
+		if (i < 5 && p[2] != ':') {
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+extern void imx_get_mac_from_fuse(int dev_id, unsigned char *mac);
+extern int imx_save_mac_to_fuse(int dev_id, unsigned char *mac);
+
+static int confirm_save(const char *macstr)
+{
+	printf("Warning: This command will save mac address %s in fuses\n"
+	       "Programming fuses is an irreversible operation!\n"
+	       "         Use this command only if you are sure of "
+	       "what you are doing!\n"
+	       "\nReally perform this fuse programming? <y/N>\n", macstr);
+
+	if (confirm_yesno())
+		return 1;
+
+	puts("Fuse programming aborted\n");
+	return 0;
+}
+
+
+static int do_mac_fuse(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	const char *op = argc >= 2 ? argv[1] : NULL;
+	int confirmed = 0;
+	const char *macstr;
+	unsigned char mac[6];
+
+	if (!strcmp(op, "read")) {
+		if (argc != 2)
+			return CMD_RET_USAGE;
+		imx_get_mac_from_fuse(0, mac);
+		printf("%02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	} else if (!strcmp(op, "save")) {
+		if (argc != 3 && argc != 4)
+			return CMD_RET_USAGE;
+		if (argc == 4) {
+			confirmed = !strcmp(argv[2], "-y");
+			if (!confirmed)
+				return CMD_RET_USAGE;
+			macstr = argv[3];
+		} else {
+			macstr = argv[2];
+		}
+		if (macstr_to_char(macstr, mac) != 0)
+			return CMD_RET_USAGE;
+		if (confirmed || confirm_save(macstr)) {
+			if (imx_save_mac_to_fuse(0, mac) != 0) {
+				printf("Failed to save mac address\n");
+				return CMD_RET_FAILURE;
+			}
+		}
+	} else {
+		return CMD_RET_USAGE;
+	}
+
+	return 0;
+}
+
 U_BOOT_CMD(
 	fuse, CONFIG_SYS_MAXARGS, 0, do_fuse,
 	"Fuse sub-system",
@@ -143,4 +228,13 @@ U_BOOT_CMD(
 	"    several fuse words, starting at 'word' (PERMANENT)\n"
 	"fuse override <bank> <word> <hexval> [<hexval>...] - override 1 or\n"
 	"    several fuse words, starting at 'word'"
+);
+
+U_BOOT_CMD(
+	mac_fuse, CONFIG_SYS_MAXARGS, 0,  do_mac_fuse,
+	"display and program MAC address in fuses",
+		  "read\n"
+	"    - read mac address from fuses\n"
+	"mac_fuses save [-y] <mac>\n"
+	"    - save mac address (XX:XX:XX:XX:XX:XX) to fuses\n"
 );

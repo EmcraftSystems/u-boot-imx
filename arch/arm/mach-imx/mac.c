@@ -11,6 +11,7 @@
 #include <asm/io.h>
 #include <asm/arch/sys_proto.h>
 #include <errno.h>
+#include <fuse.h>
 
 struct imx_mac_fuse {
 	u32 mac_addr0;
@@ -59,3 +60,35 @@ void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 		mac[5] = value;
 	}
 }
+
+#ifdef CONFIG_CMD_FUSE
+int imx_save_mac_to_fuse(int dev_id, unsigned char *mac)
+{
+	u32 value0, value1;
+
+	if (dev_id != 0) {
+		printf("Save mac to fuse for %d device is not supported\n", dev_id);
+		return -1;
+	}
+
+	if (fuse_read(9, 1, &value0) || fuse_read(9, 0, &value1)) {
+		printf("Failed to read mac from fuses\n");
+		return -1;
+	}
+
+	if ((value0 & 0xffff) != 0 || value1 != 0) {
+		printf("Fuses bank is not empty: %04x%08x\n", value0 & 0xffff, value1);
+		return -1;
+	}
+
+	value0 |= mac[0] << 8 | mac[1];
+	value1 = mac[2] << 24 | mac[3] << 16 | mac[4] << 8 | mac[5];
+
+	if (fuse_prog(9, 1, value0) || fuse_prog(9, 0, value1)) {
+		printf("Failed to write mac to fuses\n");
+		return -1;
+	}
+
+	return 0;
+}
+#endif
