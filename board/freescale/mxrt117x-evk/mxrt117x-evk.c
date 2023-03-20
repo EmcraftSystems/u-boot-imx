@@ -47,6 +47,8 @@ void board_early_dbg_led(void)
 
 int board_early_init_f(void)
 {
+	clock_root_config_t rootCfg = {0};
+
 	/* Enable I cache and D cache */
 	SCB_EnableDCache();
 	SCB_EnableICache();
@@ -60,6 +62,12 @@ int board_early_init_f(void)
 
 	CLOCK_EnableClock(kCLOCK_Pit1);
 	CLOCK_EnableClock(kCLOCK_Edma);
+
+	rootCfg.mux = kCLOCK_BUS_LPSR_ClockRoot_MuxSysPll3Out;
+	rootCfg.div = 3;
+	CLOCK_SetRootClock(kCLOCK_Root_Bus_Lpsr, &rootCfg);
+
+	CLOCK_EnableClock(kCLOCK_Edma_Lpsr);
 
 	return 0;
 }
