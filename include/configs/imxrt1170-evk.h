@@ -10,6 +10,8 @@
 
 #include <asm/arch/imx-regs.h>
 
+#define CONFIG_SYS_INIT_SP_ADDR 0x20340000
+
 #define ESDHCI_QUIRK_BROKEN_TIMEOUT_VALUE	1
 
 /*
@@ -23,7 +25,11 @@
 #define DMAMEM_BASE			(PHYS_SDRAM + PHYS_SDRAM_SIZE - \
 					 DMAMEM_SZ_ALL)
 /* For SPL */
+#ifdef CONFIG_SUPPORT_SPL
+#define CONFIG_SPL_STACK		CONFIG_SYS_INIT_SP_ADDR
+#define CONFIG_SYS_SPL_LEN		0x00008000
 #define CONFIG_SYS_UBOOT_START		0x202403FD
+#endif
 /* For SPL ends */
 
 #endif /* __IMXRT1170_EVK_H */
