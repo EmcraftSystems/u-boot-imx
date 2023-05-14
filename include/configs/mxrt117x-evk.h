@@ -133,7 +133,8 @@
 	"run sfboot"
 
 #define CONFIG_BOOTARGS							\
-	"console=ttyLP0,115200 consoleblank=0 ignore_loglevel "
+	"console=ttyLP0,115200 consoleblank=0 ignore_loglevel "		\
+	"ubi.mtd=4 rootfstype=ubifs root=ubi0:rootfs rw"
 
 
 #define CONFIG_EXTRA_ENV_SETTINGS					\
@@ -145,19 +146,35 @@
 	"netmask=255.255.0.0\0"						\
 	"ini=mxrt117x-evk.ini\0"					\
 	"image=rootfs.uImage\0"						\
+	"image_ubi=rootfs_ubi.uImage\0"					\
 	"tftpdir=imxrt117x/\0"						\
-	"sfboot=run addip && bootm ${image_sf_addr}\0"			\
+	"sfboot=sf probe 0 && sf read ${loadaddr}"			\
+		" ${kernel_sf_offset} ${kernel_sf_size} &&"		\
+		" sf read ${fdt_addr_r} ${dtb_sf_offset}"		\
+		" ${dtb_sf_size} && bootm ${loadaddr} - ${fdt_addr_r}\0"\
 	"fdt_addr_r=0x81000000\0"					\
 	"uboot_sf_offset=0x0\0"						\
 	"uboot_sf_size=0x50000\0"					\
 	"kernel_sf_offset=0x80000\0"					\
 	"kernel_sf_size=0xa00000\0"					\
 	"image_sf_addr=0x30080000\0"					\
+	"dtb_sf_offset=0x70000\0"					\
+	"dtb_sf_size=0x10000\0"						\
+	"rootfs_sf_offset=0x480000\0"					\
+	"rootfs_sf_size=0x380000\0"					\
 	"netboot=tftp ${tftpdir}${image} &&"				\
 		" run addip; bootm ${loadaddr}\0"			\
-	"sf_kernel_update=tftp ${tftpdir}${image} &&"			\
+	"sf_kernel_update=tftp ${tftpdir}${image_ubi} &&"		\
 		" sf erase ${kernel_sf_offset} ${kernel_sf_size} &&"	\
 		" sf write ${loadaddr} ${kernel_sf_offset} ${filesize}\0"\
+	"dtb=rootfs_ubi.dtb\0"						\
+	"sf_dtb_update=tftp ${tftpdir}${dtb} &&"			\
+		" sf erase ${dtb_sf_offset} ${dtb_sf_size} &&"		\
+		" sf write ${loadaddr} ${dtb_sf_offset} ${filesize}\0"	\
+	"rootfs=rootfs.ubi\0"					\
+	"sf_rootfs_update=tftp ${tftpdir}${rootfs} &&"			\
+		" sf erase ${rootfs_sf_offset} ${rootfs_sf_size} &&"	\
+		" sf write ${loadaddr} ${rootfs_sf_offset} ${filesize}\0"\
 	"uboot=u-boot.flexspi\0"					\
 	"sf_uboot_update=tftp ${tftpdir}${uboot} &&"			\
 		" sf erase ${uboot_sf_offset} ${uboot_sf_size} &&"	\
