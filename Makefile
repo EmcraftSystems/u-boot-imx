@@ -1219,6 +1219,10 @@ endif
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 	$(BOARD_SIZE_CHECK)
 
+%.flexspi: $(IMX_DEPS) %.imx
+	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
+	$(BOARD_SIZE_CHECK)
+
 %.vyb: %.imx
 	$(Q)$(MAKE) $(build)=arch/arm/cpu/armv7/vf610 $@
 
