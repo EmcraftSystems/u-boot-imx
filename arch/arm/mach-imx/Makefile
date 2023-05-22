@@ -169,6 +169,8 @@ endif
 
 FLEXSPI_HEADER = flexspi_cb.bin
 
+FLEXSPI_HEADER = flexspi_cb.bin
+
 ifeq ($(CONFIG_QSPI_BOOT),y)
 $(QSPI_HEADER): $(QSPI_HEADER_SOURCE) FORCE
 	@cp $< $@
