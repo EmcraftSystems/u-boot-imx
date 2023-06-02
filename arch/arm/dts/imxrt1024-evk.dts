@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2023 Emcraft Systems
+ */
+
+/dts-v1/;
+#include "imxrt1020-evk.dts"
+
+/ {
+	model = "NXP IMXRT1024-evk board";
+	compatible = "fsl,imxrt1020-evk", "fsl,imxrt1020";
+};
