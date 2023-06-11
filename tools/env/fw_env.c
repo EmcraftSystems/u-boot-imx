@@ -1790,7 +1790,7 @@ static int get_config(char *fname)
 	int rc;
 	char *line = NULL;
 	size_t linesize = 0;
-	char *devname;
+	static char devname[128];
 
 	fp = fopen(fname, "r");
 	if (fp == NULL)
@@ -1801,8 +1801,8 @@ static int get_config(char *fname)
 		if (line[0] == '#')
 			continue;
 
-		rc = sscanf(line, "%ms %lli %lx %lx %lx",
-			    &devname,
+		rc = sscanf(line, "%s %lli %lx %lx %lx",
+			    &devname[0],
 			    &DEVOFFSET(i),
 			    &ENVSIZE(i), &DEVESIZE(i), &ENVSECTORS(i));
 
