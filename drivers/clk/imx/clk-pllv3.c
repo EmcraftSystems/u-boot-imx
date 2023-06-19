@@ -331,6 +331,10 @@ struct clk *imx_clk_pllv3(enum imx_pllv3_type type, const char *name,
 		drv_name = UBOOT_DM_CLK_IMX_PLLV3_ENET;
 		pll->ref_clock = 500000000;
 		break;
+	case IMX_PLLV3_ENET_1G:
+		drv_name = UBOOT_DM_CLK_IMX_PLLV3_ENET;
+		pll->ref_clock = 1000000000;
+		break;
 	default:
 		kfree(pll);
 		return ERR_PTR(-EINVAL);

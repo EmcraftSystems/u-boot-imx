@@ -32,4 +32,10 @@
 #endif
 /* For SPL ends */
 
+#define CONFIG_EXTRA_ENV_SETTINGS					\
+	"ethaddr=aa:bb:cc:dd:ee:f0\0"					\
+	"serverip=172.17.0.1\0"						\
+	"ipaddr=172.17.44.111\0"					\
+	"netmask=255.255.0.0\0"						\
+
 #endif /* __IMXRT1170_EVK_H */

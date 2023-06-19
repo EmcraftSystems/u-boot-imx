@@ -631,7 +631,7 @@ static int fec_init(struct eth_device *dev, struct bd_info *bd)
 
 	/* Do not access reserved register */
 	if (!is_mx6ul() && !is_mx6ull() && !is_imx8() && !is_imx8m() && !is_imx8ulp() &&
-	    !is_imx93()) {
+	    !is_imx93() && !is_imxrt()) {
 		/* clear MIB RAM */
 		for (i = mib_ptr; i <= mib_ptr + 0xfc; i += 4)
 			writel(0, i);
@@ -1437,6 +1437,25 @@ static int fecmxc_probe(struct udevice *dev)
 		}
 
 		priv->clk_rate = clk_get_rate(&priv->ipg_clk);
+	} else if (is_imxrt()) {
+		ret = clk_get_by_name(dev, "ipg", &priv->ipg_clk);
+		if (ret < 0) {
+			debug("Can't get FEC ipg clk: %d\n", ret);
+			return ret;
+		}
+		ret = clk_enable(&priv->ipg_clk);
+		if(ret)
+			return ret;
+
+		ret = clk_get_by_name(dev, "enet_clk_ref", &priv->clk_ref);
+		if (!ret) {
+			ret = clk_enable(&priv->clk_ref);
+
+			if (ret)
+				return ret;
+		}
+
+		priv->clk_rate = clk_get_rate(&priv->ipg_clk);
 	} else if (CONFIG_IS_ENABLED(CLK_CCF)) {
 		ret = clk_get_by_name(dev, "ipg", &priv->ipg_clk);
 		if (ret < 0) {
@@ -1652,6 +1671,7 @@ static const struct udevice_id fecmxc_ids[] = {
 	{ .compatible = "fsl,mvf600-fec" },
 	{ .compatible = "fsl,imx8qm-fec" },
 	{ .compatible = "fsl,imx93-fec" },
+	{ .compatible = "fsl,imxrt1xxx-fec" },
 	{ }
 };
 
