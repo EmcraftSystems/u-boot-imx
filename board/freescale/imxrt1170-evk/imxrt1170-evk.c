@@ -3,6 +3,7 @@
  * Copyright (C) 2019
  * Author(s): Giulio Benetti <giulio.benetti@benettiengineering.com>
  * Copyright (C) 2023 Emcraft Systems
+ * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  */
 
 #include <common.h>
@@ -55,7 +56,7 @@ int board_phy_config(struct phy_device *phydev)
 #define ENET_TX_CLK_SEL (1 << 0)
 #define ENET_REF_CLK_DIR (1 << 1)
 
-void enbale_enet_refclk_out(void)
+void enable_enet_refclk_out(void)
 {
 	u32 reg;
 	reg = readl(IOMUXC_GPR4_BASE);
@@ -180,7 +181,7 @@ int board_eth_init(void)
 {
 	imxrt1170_pll1_init();
 
-	enbale_enet_refclk_out();
+	enable_enet_refclk_out();
 
 	return 0;
 }
