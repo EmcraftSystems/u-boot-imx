@@ -2,6 +2,8 @@
 /*
  * Copyright (C) 2020
  * Author(s): Giulio Benetti <giulio.benetti@benettiengineering.com>
+ * Copyright (C) 2023 Emcraft Systems
+ * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  */
 
 #include <common.h>
@@ -13,6 +15,7 @@
 #include <asm/global_data.h>
 #include <asm/io.h>
 #include <asm/armv7m.h>
+#include <phy.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -77,3 +80,66 @@ int board_init(void)
 
 	return 0;
 }
+
+#if defined(CONFIG_BOARD_EARLY_INIT_F)
+
+#if CONFIG_IS_ENABLED(FEC_MXC)
+#define MII_PHY_CTRL2	0x1f
+#define MII_PHY_CTRL2_RMII_CLK_50MHZ	(1 << 7)
+#define MII_PHY_CTRL2_RMII_LED_MODE	(1 << 4)
+
+int board_phy_config(struct phy_device *phydev)
+{
+	phy_write(phydev, MDIO_DEVAD_NONE, MII_PHY_CTRL2,
+		phy_read(phydev, MDIO_DEVAD_NONE, MII_PHY_CTRL2) |
+			MII_PHY_CTRL2_RMII_CLK_50MHZ |
+			MII_PHY_CTRL2_RMII_LED_MODE);
+	phy_write(phydev, MDIO_DEVAD_NONE, MII_BMCR,
+		phy_read(phydev, MDIO_DEVAD_NONE, MII_BMCR) & ~BMCR_ISOLATE);
+	return 0;
+}
+
+#define IOMUXC_GPR_BASE 0x400AC000
+#define IOMUXC_GPR1_BASE (IOMUXC_GPR_BASE + 0x4)
+
+/* IOMUXC GPR1 bits */
+#define ENET_REF_CLK_DIR (1 << 17)
+
+void enable_enet_refclk_out(void)
+{
+	u32 reg;
+	reg = readl(IOMUXC_GPR1_BASE);
+	reg |= ENET_REF_CLK_DIR; /* 50M ENET_REF_CLOCK output to PHY. */
+	writel(reg, IOMUXC_GPR1_BASE);
+}
+
+#define ANATOP_PLL_ENET_BASE (ANATOP_BASE_ADDR + 0xe0)
+#define PLL_ENET_BYPASS (1 << 16)
+
+static void imxrt1020_pll6_init(void)
+{
+	u32 reg;
+	/* disable bypass on PLL6 (ENET PLL) */
+	reg = readl(ANATOP_PLL_ENET_BASE);
+	writel(reg & ~(PLL_ENET_BYPASS), ANATOP_PLL_ENET_BASE);
+}
+
+static int board_eth_init(void)
+{
+	imxrt1020_pll6_init();
+
+	/* Output 50MHz clock to PHY. */
+	enable_enet_refclk_out();
+	return 0;
+}
+#endif /* FEC_MXC */
+
+int board_early_init_f(void)
+{
+#if CONFIG_IS_ENABLED(FEC_MXC)
+	board_eth_init();
+#endif
+	return 0;
+}
+
+#endif /* CONFIG_BOARD_EARLY_INIT_F */
