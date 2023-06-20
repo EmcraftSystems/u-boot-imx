@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2023 Emcraft Systems
+ * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  */
 
 /dts-v1/;
@@ -9,4 +10,9 @@
 / {
 	model = "NXP IMXRT1024-evk board";
 	compatible = "fsl,imxrt1020-evk", "fsl,imxrt1020";
+};
+
+&clks {
+	assigned-clocks = <&clks IMXRT1020_CLK_IPG_PODF>;
+	assigned-clock-rates = <144000000>;
 };

@@ -2,6 +2,8 @@
 /*
  * Copyright(C) 2020
  * Author(s): Giulio Benetti <giulio.benetti@benettiengineering.com>
+ * Copyright (C) 2023 Emcraft Systems
+ * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  */
 
 #include <clk.h>
@@ -29,6 +31,7 @@ static const char *const usdhc_sels[] = { "pll2_pfd2_396m", "pll2_pfd0_352m", };
 static const char *const lpuart_sels[] = { "pll3_80m", "osc", };
 static const char *const semc_alt_sels[] = { "pll2_pfd2_396m", "pll3_pfd1_664_62m", };
 static const char *const semc_sels[] = { "periph_sel", "semc_alt_sel", };
+static const char *const perclk_sels[] = {"ipg_podf", "osc", };
 
 static int imxrt1020_clk_probe(struct udevice *dev)
 {
@@ -43,6 +46,10 @@ static int imxrt1020_clk_probe(struct udevice *dev)
 	clk_dm(IMXRT1020_CLK_PLL3_USB_OTG,
 	       imx_clk_pllv3(IMX_PLLV3_USB, "pll3_usb_otg", "osc",
 			     base + 0x10, 0x1));
+	clk_dm(IMXRT1020_CLK_PLL6_ENET,
+	       imx_clk_pllv3(IMX_PLLV3_ENET, "pll6_enet", "osc",
+			     base + 0xe0, 0x1));
+	clk_dm(IMXRT1020_CLK_ENET_500M, imx_clk_gate("enet_500M", "pll6_enet", base + 0xe0, 22));
 
 	/* PLL bypass out */
 	clk_dm(IMXRT1020_CLK_PLL2_BYPASS,
@@ -77,6 +84,10 @@ static int imxrt1020_clk_probe(struct udevice *dev)
 	if (base == (void *)FDT_ADDR_T_NONE)
 		return -EINVAL;
 
+	clk_dm(IMXRT1020_CLK_ARM_PODF,
+	       imx_clk_divider("arm_podf", "pll6_enet",
+			       base + 0x10, 0, 3));
+
 	clk_dm(IMXRT1020_CLK_PRE_PERIPH_SEL,
 	       imx_clk_mux("pre_periph_sel", base + 0x18, 18, 2,
 			   pre_periph_sels, ARRAY_SIZE(pre_periph_sels)));
@@ -102,6 +113,16 @@ static int imxrt1020_clk_probe(struct udevice *dev)
 	clk_dm(IMXRT1020_CLK_AHB_PODF,
 	       imx_clk_divider("ahb_podf", "periph_sel",
 			       base + 0x14, 10, 3));
+	clk_dm(IMXRT1020_CLK_IPG_PODF,
+	       imx_clk_divider("ipg_podf", "ahb_podf", base + 0x14, 8, 2));
+
+	clk_dm(IMXRT1020_CLK_PER_CLK_SEL,
+	       imx_clk_mux("perclk_sel", base + 0x1c, 6, 1,
+			   perclk_sels, ARRAY_SIZE(perclk_sels)));
+
+	clk_dm(IMXRT1020_CLK_PER_PODF,
+	       imx_clk_divider("per", "perclk_sel", base + 0x1c, 0, 5));
+
 	clk_dm(IMXRT1020_CLK_USDHC1_PODF,
 	       imx_clk_divider("usdhc1_podf", "usdhc1_sel",
 			       base + 0x24, 11, 3));
@@ -123,6 +144,10 @@ static int imxrt1020_clk_probe(struct udevice *dev)
 	       imx_clk_gate2("lpuart1", "lpuart_podf", base + 0x7c, 24));
 	clk_dm(IMXRT1020_CLK_SEMC,
 	       imx_clk_gate2("semc", "semc_podf", base + 0x74, 4));
+
+	clk_dm(IMXRT1020_CLK_ENET, imx_clk_gate2("enet", "ipg_podf", base + 0x6c, 10));
+	clk_dm(IMXRT1020_CLK_ENET_REF,
+	       imx_clk_fixed_factor("enet_ref", "enet_500M", 1, 10));
 
 #ifdef CONFIG_XPL_BUILD
 	struct clk *clk, *clk1;

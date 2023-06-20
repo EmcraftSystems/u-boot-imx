@@ -2,6 +2,8 @@
 /*
  * Copyright(C) 2020
  * Author(s): Giulio Benetti <giulio.benetti@benettiengineering.com>
+ * Copyright (C) 2023 Emcraft Systems
+ * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  */
 
 #ifndef __DT_BINDINGS_CLOCK_IMXRT1020_H
@@ -47,6 +49,12 @@
 #define IMXRT1020_CLK_PLL3_USB_OTG		37
 #define IMXRT1020_CLK_PLL4_AUDIO		38
 #define IMXRT1020_CLK_PLL6_ENET			39
-#define IMXRT1020_CLK_END			40
+#define IMXRT1020_CLK_IPG_PODF			40
+#define IMXRT1020_CLK_PER_CLK_SEL		41
+#define IMXRT1020_CLK_PER_PODF			42
+#define IMXRT1020_CLK_ENET			43
+#define IMXRT1020_CLK_ENET_500M			44
+#define IMXRT1020_CLK_ENET_REF			45
+#define IMXRT1020_CLK_END			46
 
 #endif /* __DT_BINDINGS_CLOCK_IMXRT1020_H */

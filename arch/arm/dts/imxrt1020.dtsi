@@ -2,6 +2,8 @@
 /*
  * Copyright (C) 2020
  * Author(s): Giulio Benetti <giulio.benetti@benettiengineering.com>
+ * Copyright (C) 2023 Emcraft Systems
+ * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  */
 
 #include "armv7-m.dtsi"
@@ -143,5 +145,16 @@
 			clocks = <&osc>;
 			status = "disabled";
 		};
+
+		fec: ethernet@402D8000 {
+			compatible = "fsl,imxrt1xxx-fec";
+			reg = <0x402D8000 0x4000>;
+			clocks = <&clks IMXRT1020_CLK_ENET>;
+			clock-names = "ipg";
+
+			fsl,num-tx-queues=<3>;
+			fsl,num-rx-queues=<3>;
+			status = "disabled";
+                };
 	};
 };

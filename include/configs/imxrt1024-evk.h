@@ -1,11 +1,11 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
- * Copyright (C) 2020
- * Author(s): Giulio Benetti <giulio.benetti@benettiengineering.com>
+ * Copyright (C) 2023 Emcraft Systems
+ * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  */
 
-#ifndef __IMXRT1020_EVK_H
-#define __IMXRT1020_EVK_H
+#ifndef __IMXRT1024_EVK_H
+#define __IMXRT1024_EVK_H
 
 #include <asm/arch/imx-regs.h>
 
@@ -36,5 +36,10 @@
 	"image=rootfs.uImage\0" \
 	"mmcboot=fatload mmc 0 ${loadaddr} ${image} &&"	\
 		" bootm ${loadaddr}\0" \
+	"ethaddr=aa:bb:cc:dd:ee:e0\0"					\
+	"serverip=172.17.0.1\0"						\
+	"gatewayip=172.17.0.1\0"					\
+	"ipaddr=172.17.44.124\0"					\
+	"netmask=255.255.0.0\0"						\
 
-#endif /* __IMXRT1020_EVK_H */
+#endif /* __IMXRT1024_EVK_H */
