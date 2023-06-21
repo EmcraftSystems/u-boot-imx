@@ -149,7 +149,10 @@ static int imxrt1020_clk_probe(struct udevice *dev)
 	clk_dm(IMXRT1020_CLK_ENET_REF,
 	       imx_clk_fixed_factor("enet_ref", "enet_500M", 1, 10));
 
-#ifdef CONFIG_XPL_BUILD
+	clk_dm(IMXRT1020_CLK_USBOH3,
+	       imx_clk_gate2("usboh3", "pll3_usb_otg", base + 0x80, 0));
+
+#ifdef CONFIG_SPL_BUILD
 	struct clk *clk, *clk1;
 
 	clk_get_by_id(IMXRT1020_CLK_SEMC_SEL, &clk1);

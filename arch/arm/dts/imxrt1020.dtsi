@@ -22,6 +22,7 @@
 		gpio2 = &gpio3;
 		mmc0 = &usdhc1;
 		serial0 = &lpuart1;
+		usbphy0 = &usbphy1;
 	};
 
 	clocks {
@@ -156,5 +157,32 @@
 			fsl,num-rx-queues=<3>;
 			status = "disabled";
                 };
+
+		usbphy1: usbphy@400d9000 {
+			compatible = "fsl,imxrt-usbphy";
+			reg = <0x400d9000 0x1000>;
+			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clks IMXRT1020_CLK_USBOH3>;
+		};
+
+		usbmisc: usbmisc@402e0800 {
+			#index-cells = <1>;
+			compatible = "fsl,imxrt-usbmisc";
+			reg = <0x402e0800 0x200>;
+			clocks = <&clks IMXRT1020_CLK_USBOH3>;
+		};
+
+		usbotg1: usb@402e0000 {
+			compatible = "fsl,imxrt-usb", "fsl,imx27-usb";
+			reg = <0x402e0000 0x200>;
+			interrupts = <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clks IMXRT1020_CLK_USBOH3>;
+			fsl,usbphy = <&usbphy1>;
+			fsl,usbmisc = <&usbmisc 0>;
+			ahb-burst-config = <0x0>;
+			tx-burst-size-dword = <0x10>;
+			rx-burst-size-dword = <0x10>;
+			status = "disabled";
+		};
 	};
 };
