@@ -34,7 +34,10 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"image=rootfs.uImage\0" \
-	"mmcboot=fatload mmc 0 ${loadaddr} ${image} &&"	\
+	"bootargs=clk_ignore_unused\0" \
+	"addip=setenv bootargs ${bootargs} ip=${ipaddr}:${serverip}:"	\
+		"${gatewayip}:${netmask}:${hostname}:eth0:off\0"	\
+	"mmcboot=fatload mmc 0 ${loadaddr} ${image} && run addip &&"	\
 		" bootm ${loadaddr}\0" \
 	"ethaddr=aa:bb:cc:dd:ee:e0\0"					\
 	"serverip=172.17.0.1\0"						\
