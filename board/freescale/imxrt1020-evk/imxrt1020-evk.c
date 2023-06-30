@@ -82,6 +82,14 @@ int board_init(void)
 	return 0;
 }
 
+#if defined DMAMEM_BASE
+ulong board_get_usable_ram_top(ulong total_size)
+{
+	/* relocate U-Boot before the uncached DMA area, which is reserved in the end of SDRAM */
+	return DMAMEM_BASE;
+}
+#endif
+
 #if defined(CONFIG_BOARD_EARLY_INIT_F)
 
 #if CONFIG_IS_ENABLED(FEC_MXC)
