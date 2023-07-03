@@ -39,6 +39,7 @@
 		"${gatewayip}:${netmask}:${hostname}:eth0:off\0"	\
 	"mmcboot=fatload mmc 0 ${loadaddr} ${image} && run addip &&"	\
 		" bootm ${loadaddr}\0" \
+	"netboot=tftp ${image} && run addip && bootm\0"			\
 	"ethaddr=aa:bb:cc:dd:ee:e0\0"					\
 	"serverip=172.17.0.1\0"						\
 	"gatewayip=172.17.0.1\0"					\
