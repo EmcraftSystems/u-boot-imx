@@ -24,6 +24,7 @@ static struct clk_ops imxrt1020_clk_ops = {
 
 static const char * const pll2_bypass_sels[] = {"pll2_sys", "osc", };
 static const char * const pll3_bypass_sels[] = {"pll3_usb_otg", "osc", };
+static const char * const pll6_bypass_sels[] = {"pll6_enet", "osc", };
 
 static const char *const pre_periph_sels[] = { "pll2_sys", "pll2_pfd3_297m", "pll3_pfd3_454_74m", "arm_podf", };
 static const char *const periph_sels[] = { "pre_periph_sel", "todo", };
@@ -49,7 +50,7 @@ static int imxrt1020_clk_probe(struct udevice *dev)
 	clk_dm(IMXRT1020_CLK_PLL6_ENET,
 	       imx_clk_pllv3(IMX_PLLV3_ENET, "pll6_enet", "osc",
 			     base + 0xe0, 0x1));
-	clk_dm(IMXRT1020_CLK_ENET_500M, imx_clk_gate("enet_500M", "pll6_enet", base + 0xe0, 22));
+	clk_dm(IMXRT1020_CLK_ENET_500M, imx_clk_gate("pll6_500m", "pll6_enet", base + 0xe0, 22));
 
 	/* PLL bypass out */
 	clk_dm(IMXRT1020_CLK_PLL2_BYPASS,
@@ -61,6 +62,11 @@ static int imxrt1020_clk_probe(struct udevice *dev)
 	       imx_clk_mux_flags("pll3_bypass", base + 0x10, 16, 1,
 				 pll3_bypass_sels,
 				 ARRAY_SIZE(pll3_bypass_sels),
+				 CLK_SET_RATE_PARENT));
+	clk_dm(IMXRT1020_CLK_PLL6_BYPASS,
+	       imx_clk_mux_flags("pll6_bypass", base + 0xe0, 16, 1,
+				 pll6_bypass_sels,
+				 ARRAY_SIZE(pll6_bypass_sels),
 				 CLK_SET_RATE_PARENT));
 
 	clk_dm(IMXRT1020_CLK_PLL3_80M,
@@ -85,7 +91,7 @@ static int imxrt1020_clk_probe(struct udevice *dev)
 		return -EINVAL;
 
 	clk_dm(IMXRT1020_CLK_ARM_PODF,
-	       imx_clk_divider("arm_podf", "pll6_enet",
+	       imx_clk_divider("arm_podf", "pll6_500m",
 			       base + 0x10, 0, 3));
 
 	clk_dm(IMXRT1020_CLK_PRE_PERIPH_SEL,
@@ -147,7 +153,7 @@ static int imxrt1020_clk_probe(struct udevice *dev)
 
 	clk_dm(IMXRT1020_CLK_ENET, imx_clk_gate2("enet", "ipg_podf", base + 0x6c, 10));
 	clk_dm(IMXRT1020_CLK_ENET_REF,
-	       imx_clk_fixed_factor("enet_ref", "enet_500M", 1, 10));
+	       imx_clk_fixed_factor("enet_ref", "pll6_enet", 1, 10));
 
 	clk_dm(IMXRT1020_CLK_USBOH3,
 	       imx_clk_gate2("usboh3", "pll3_usb_otg", base + 0x80, 0));
@@ -177,6 +183,18 @@ static int imxrt1020_clk_probe(struct udevice *dev)
 	clk_get_by_id(IMXRT1020_CLK_PLL2_BYPASS, &clk1);
 	clk_set_parent(clk1, clk);
 
+	/* Switch to PLL6 500M output for ARM Core */
+	clk_get_by_id(IMXRT1020_CLK_PLL6_ENET, &clk);
+	clk_enable(clk);
+	clk_get_by_id(IMXRT1020_CLK_PLL6_BYPASS, &clk1);
+	clk_set_parent(clk1, clk);
+	clk_get_by_id(IMXRT1020_CLK_ENET_500M, &clk);
+	clk_enable(clk);
+	clk_get_by_id(IMXRT1020_CLK_ARM_PODF, &clk);
+	clk_get_by_id(IMXRT1020_CLK_PRE_PERIPH_SEL, &clk1);
+	clk_set_parent(clk1, clk);
+	clk_get_by_id(IMXRT1020_CLK_IPG_PODF, &clk);
+	clk_set_rate(clk, 125000000UL);
 #endif
 
 	return 0;
