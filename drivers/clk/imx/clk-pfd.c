@@ -61,6 +61,27 @@ static unsigned long clk_pfd_set_rate(struct clk *clk, unsigned long rate)
 	u64 tmp = parent_rate;
 	u8 frac;
 
+#if defined (CONFIG_ARCH_IMXRT)
+	u32 reg;
+	tmp *= 18;
+	do_div(tmp, rate);
+	frac = tmp;
+#if defined (CONFIG_CLK_IMXRT1170)
+	if (frac < 13)
+		frac = 13;
+#else
+	if (frac < 12)
+		frac = 12;
+#endif
+	else if (frac > 35)
+		frac = 35;
+
+	reg = readl(pfd->reg);
+
+	reg &= ~(0x3f << (pfd->idx * 8));
+	reg |= (frac << (pfd->idx * 8));
+	writel(reg, pfd->reg);
+#else
 	tmp = tmp * 18 + rate / 2;
 	do_div(tmp, rate);
 	frac = tmp;
@@ -71,7 +92,7 @@ static unsigned long clk_pfd_set_rate(struct clk *clk, unsigned long rate)
 
 	writel(0x3f << (pfd->idx * 8), pfd->reg + CLR);
 	writel(frac << (pfd->idx * 8), pfd->reg + SET);
-
+#endif
 	return 0;
 }
 
