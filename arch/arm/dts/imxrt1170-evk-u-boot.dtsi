@@ -63,14 +63,6 @@
 	u-boot,dm-spl;
 };
 
-&semc {
-	u-boot,dm-spl;
-
-	bank1: bank@0 {
-		u-boot,dm-spl;
-	};
-};
-
 &iomuxc {
 	u-boot,dm-spl;
 
