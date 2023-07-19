@@ -18,6 +18,8 @@
 #include <serial.h>
 #include <phy.h>
 #include <linux/delay.h>
+#include <clk.h>
+#include <dt-bindings/clock/imxrt1170-clock.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -225,6 +227,14 @@ int board_early_init_f(void)
 
 int board_early_init_r(void)
 {
+	/* Switch M7 CPU core to 986MHz from ARM_PLL */
+	struct clk *clk, *clk1;
+
+	clk_get_by_id(IMXRT1170_CLK_PLL_ARM_OUT, &clk);
+	clk_enable(clk);
+	clk_get_by_id(IMXRT1170_CLK_ROOT_M7, &clk1);
+	clk_set_parent(clk1, clk);
+
 	int rv;
 	struct udevice *dev;
 
@@ -234,7 +244,6 @@ int board_early_init_r(void)
 	}
 	return rv;
 }
-
 
 #endif
 
@@ -269,21 +278,9 @@ int spl_start_uboot(void)
 }
 #endif
 
-int spl_dram_init(void)
-{
-	struct udevice *dev;
-	int rv;
-
-	rv = uclass_get_device(UCLASS_RAM, 0, &dev);
-	if (rv)
-		debug("DRAM init failed: %d\n", rv);
-	return rv;
-}
-
 void spl_board_init(void)
 {
 	preloader_console_init();
-	spl_dram_init();
 	arch_cpu_init(); /* to configure mpu for sdram rw permissions */
 }
 
