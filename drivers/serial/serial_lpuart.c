@@ -46,6 +46,7 @@
 
 #define CTRL_TE		(1 << 19)
 #define CTRL_RE		(1 << 18)
+#define UART_GLOBAL_RST	0x2
 
 #define FIFO_RXFLUSH		BIT(14)
 #define FIFO_TXFLUSH		BIT(15)
@@ -376,6 +377,9 @@ static int _lpuart32_serial_init(struct udevice *dev)
 	struct lpuart_serial_plat *plat = dev_get_plat(dev);
 	struct lpuart_fsl_reg32 *base = (struct lpuart_fsl_reg32 *)plat->reg;
 	u32 val, tx_fifo_size;
+
+	lpuart_write32(plat->flags, &base->global, UART_GLOBAL_RST);
+	lpuart_write32(plat->flags, &base->global, 0x0);
 
 	lpuart_read32(plat->flags, &base->ctrl, &val);
 	val &= ~CTRL_RE;
