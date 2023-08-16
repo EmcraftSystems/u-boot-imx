@@ -19,6 +19,7 @@
 #define DMAMEM_SZ_ALL			(1 * 1024 * 1024)
 #define DMAMEM_BASE			(PHYS_SDRAM + PHYS_SDRAM_SIZE - \
 					 DMAMEM_SZ_ALL)
+#define CONFIG_SYS_BOOTM_LEN		SZ_32M
 
 /*
  * Configuration of the external SDRAM memory
