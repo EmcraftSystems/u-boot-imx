@@ -26,7 +26,7 @@
 #define DMAMEM_SZ_ALL			(1 * 1024 * 1024)  /* should be 2^N */
 #define DMAMEM_BASE			(FB_RESERVED_BASE - DMAMEM_SZ_ALL) /* should be multiple to DMAMEM_SZ_ALL */
 
-#define CONFIG_EXTRA_ENV_SETTINGS					\
+#define CFG_EXTRA_ENV_SETTINGS						\
 	"image=rootfs.uImage\0"						\
 	"uboot=u-boot.img\0"						\
 	"spl=SPL\0"							\
