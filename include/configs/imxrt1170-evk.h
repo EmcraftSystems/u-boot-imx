@@ -27,7 +27,7 @@
 #define CFG_SYS_UBOOT_START		0x202403FD
 /* For SPL ends */
 
-#define CONFIG_EXTRA_ENV_SETTINGS					\
+#define CFG_EXTRA_ENV_SETTINGS						\
 	"image=rootfs.uImage\0"						\
 	"addip=setenv bootargs ${bootargs} ip=${ipaddr}:${serverip}:"	\
 		"${gatewayip}:${netmask}:${hostname}:eth0:off\0"	\
