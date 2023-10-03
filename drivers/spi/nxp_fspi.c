@@ -1322,7 +1322,7 @@ static const struct udevice_id nxp_fspi_ids[] = {
 	{ .compatible = "nxp,imx8qxp-fspi", .data = (ulong)&imx8qxp_data, },
 	{ .compatible = "nxp,imx8dxl-fspi", .data = (ulong)&imx8dxl_data, },
 	{ .compatible = "nxp,imx8ulp-fspi", .data = (ulong)&imx8ulp_data, },
-	{ .compatible = "nxp,imxrt1050-fspi", .data = (void *)&imxrt1050_data, },
+	{ .compatible = "nxp,imxrt1050-fspi", .data = (ulong)&imxrt1050_data, },
 	{ }
 };
 

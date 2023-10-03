@@ -160,6 +160,14 @@ QSPI_HEADER_OFF = 0
 QSPI_UBOOT_OFF = 1
 endif
 
+ifeq ($(SOC),$(filter $(SOC),imxrt))
+ifeq ($(CONFIG_IMXRT1170), y)
+QSPI_HEADER_OFF = 1
+else
+QSPI_HEADER_OFF = 0
+endif
+endif
+
 FLEXSPI_HEADER = flexspi_cb.bin
 
 ifeq ($(CONFIG_QSPI_BOOT),y)
@@ -322,6 +330,15 @@ SPL: MKIMAGEOUTPUT = SPL.log
 
 SPL: spl/u-boot-spl.bin spl/u-boot-spl.cfgout $(PLUGIN).bin FORCE
 	$(call if_changed,mkimage)
+
+ifeq ($(CONFIG_FSPI_BOOT),y)
+SPL.flexspi: SPL $(FLEXSPI_HEADER)
+	@dd if=SPL of=u-boot.tmp bs=1k seek=$(QSPI_UBOOT_OFF)
+	@dd if=flexspi_cb.bin of=u-boot.tmp bs=1k seek=$(QSPI_HEADER_OFF) conv=notrunc
+	@mv u-boot.tmp $@
+	@rm flexspi_cb.bin
+	@echo "Packed FlexSPI config block with $@"
+endif
 
 MKIMAGEFLAGS_u-boot.uim = -A arm -O U-Boot -a $(CONFIG_TEXT_BASE) \
 		-e $(CONFIG_TEXT_BASE) -C none -T firmware
