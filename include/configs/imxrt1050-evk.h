@@ -11,7 +11,11 @@
 
 #include <asm/arch/imx-regs.h>
 
+#ifdef CONFIG_FSPI_BOOT
+#define CONFIG_SYS_INIT_SP_ADDR		(0x00000000 + 384 * 1024) /* points to end of ITCM */
+#else
 #define CONFIG_SYS_INIT_SP_ADDR		0x20280000
+#endif
 
 #define ESDHCI_QUIRK_BROKEN_TIMEOUT_VALUE	1
 
@@ -41,8 +45,8 @@
 /* For SPL */
 #ifdef CONFIG_SUPPORT_SPL
 #define CONFIG_SPL_STACK		CONFIG_SYS_INIT_SP_ADDR
-#define CONFIG_SYS_SPL_LEN		0x00008000
 #define CONFIG_SYS_UBOOT_START		0x800023FD
+#define CONFIG_SYS_UBOOT_BASE		0x60010000
 #endif
 /* For SPL ends */
 

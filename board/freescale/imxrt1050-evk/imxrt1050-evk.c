@@ -72,6 +72,9 @@ void spl_board_init(void)
 
 u32 spl_boot_device(void)
 {
+#ifdef CONFIG_FSPI_BOOT
+	return BOOT_DEVICE_NOR;
+#endif
 	return BOOT_DEVICE_MMC1;
 }
 #endif
