@@ -28,11 +28,24 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS					\
 	"image=rootfs.uImage\0"						\
+	"uboot=u-boot.img\0"						\
+	"spl=SPL\0"							\
+	"tftpdir=imxrt1170/\0"						\
+	"mmc_update_spl=tftp ${tftpdir}${spl} &&"			\
+	" setexpr tmp ${filesize} / 0x200 &&"				\
+	" setexpr tmp ${tmp} + 1 &&"					\
+	" mmc write ${loadaddr} 2 ${tmp}\0"				\
+	"mmc_update_uboot=tftp ${tftpdir}${uboot} &&"			\
+	" setexpr tmp ${filesize} / 0x200 &&"				\
+	" setexpr tmp ${tmp} + 1 &&"					\
+	" mmc write ${loadaddr} 0x100 ${tmp}\0"				\
+	"mmc_update_kernel=tftp ${tftpdir}${image} &&"			\
+	" fatwrite mmc 0 ${loadaddr} ${image} ${filesize}\0"		\
 	"addip=setenv bootargs ${bootargs} ip=${ipaddr}:${serverip}:"	\
 		"${gatewayip}:${netmask}:${hostname}:eth0:off\0"	\
 	"mmcboot=fatload mmc 0 ${loadaddr} ${image} && run addip &&"	\
 		" bootm ${loadaddr}\0"					\
-	"netboot=tftp ${image} && run addip && bootm\0"			\
+	"netboot=tftp ${tftpdir}${image} && run addip && bootm\0"	\
 	"ethaddr=aa:bb:cc:dd:ee:f0\0"					\
 	"serverip=172.17.0.1\0"						\
 	"ipaddr=172.17.44.111\0"					\
