@@ -530,4 +530,10 @@ config FSL_LPSPI
 	  Enable the FSL LPSPI controller driver. This driver can be used
 	  on various i.MX SoCs such as i.MX7ULP/8QM/8QXP/8DX/8DXL.
 
+config FSL_FLEXSPI
+	tristate "Freescale Flex SPI controller"
+	help
+	  This enables support for the FlexSPI controller in master mode.
+	  We only connect the NOR to this controller now.
+
 endif # menu "SPI Support"
