@@ -113,6 +113,7 @@ static const char *const usdhc_sels[] = { "pll2_pfd2_396m", "pll2_pfd0_352m", };
 static const char *const lpuart_sels[] = { "pll3_80m", "osc", };
 static const char *const semc_alt_sels[] = { "pll2_pfd2_396m", "pll3_pfd1_664_62m", };
 static const char *const semc_sels[] = { "periph_sel", "semc_alt_sel", };
+static const char *const flexspi_sels[] = { "semc_podf", "pll3_usb_otg", "pll2_pfd2_396m", "pll3_pfd0_720m", };
 static const char *const lcdif_sels[] = { "pll2_sys", "pll3_pfd3_454_74m", "pll5_video", "pll2_pfd0_352m", "pll2_pfd1_594m", "pll3_pfd1_664_62m"};
 
 static int imxrt1050_clk_probe(struct udevice *dev)
@@ -195,6 +196,8 @@ static int imxrt1050_clk_probe(struct udevice *dev)
 	       imx_clk_pfd("pll2_pfd1_594m", "pll2_sys", base + 0x100, 1));
 	clk_dm(IMXRT1050_CLK_PLL2_PFD2_396M,
 	       imx_clk_pfd("pll2_pfd2_396m", "pll2_sys", base + 0x100, 2));
+	clk_dm(IMXRT1050_CLK_PLL3_PFD0_720M,
+	       imx_clk_pfd("pll3_pfd0_720m", "pll3_usb_otg", base + 0xf0, 0));
 	clk_dm(IMXRT1050_CLK_PLL3_PFD1_664_62M,
 	       imx_clk_pfd("pll3_pfd1_664_62m", "pll3_usb_otg", base + 0xf0,
 			   1));
@@ -232,6 +235,9 @@ static int imxrt1050_clk_probe(struct udevice *dev)
 	clk_dm(IMXRT1050_CLK_SEMC_SEL,
 	       imx_clk_mux("semc_sel", base + 0x14, 6, 1,
 			   semc_sels, ARRAY_SIZE(semc_sels)));
+	clk_dm(IMXRT1050_CLK_FLEXSPI_SEL,
+	       imx_clk_mux("flexspi_sel", base + 0x1c, 29, 2,
+			   flexspi_sels, ARRAY_SIZE(flexspi_sels)));
 	clk_dm(IMXRT1050_CLK_LCDIF_SEL,
 	       imx_clk_mux("lcdif_sel", base + 0x38, 15, 3,
 			   lcdif_sels, ARRAY_SIZE(lcdif_sels)));
@@ -260,6 +266,9 @@ static int imxrt1050_clk_probe(struct udevice *dev)
 	clk_dm(IMXRT1050_CLK_LCDIF_PODF,
 	       imx_clk_divider("lcdif_podf", "lcdif_pred",
 			       base + 0x18, 23, 3));
+	clk_dm(IMXRT1050_CLK_FLEXSPI_PODF,
+	       imx_clk_divider("flexspi_podf", "flexspi_sel",
+			       base + 0x1c, 23, 3));
 
 	clk_dm(IMXRT1050_CLK_USDHC1,
 	       imx_clk_gate2("usdhc1", "usdhc1_podf", base + 0x80, 2));
@@ -275,6 +284,8 @@ static int imxrt1050_clk_probe(struct udevice *dev)
 	       imx_clk_gate2("lcdif_pix", "lcdif", base + 0x74, 10));
 	clk_dm(IMXRT1050_CLK_USBOH3,
 	       imx_clk_gate2("usboh3", "pll3_usb_otg", base + 0x80, 0));
+	clk_dm(IMXRT1050_CLK_FLEXSPI,
+	       imx_clk_gate2("flexspi", "flexspi_podf", base + 0x80, 10));
 
 	clk_dm(IMXRT1050_CLK_ENET, imx_clk_gate2("enet", "ipg_podf", base + 0x6c, 10));
 	clk_dm(IMXRT1050_CLK_ENET_REF,
