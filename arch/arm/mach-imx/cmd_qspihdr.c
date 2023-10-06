@@ -10,6 +10,7 @@
 #include <spi.h>
 #include <spi_flash.h>
 #include <dm/device-internal.h>
+#include <asm/mach-imx/qspihdr.h>
 
 static struct spi_flash *flash;
 
