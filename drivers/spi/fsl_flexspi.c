@@ -16,6 +16,7 @@
 #include <watchdog.h>
 #include "fsl_flexspi.h"
 #include <mapmem.h>
+#include <linux/mtd/spi-nor.h>
 
 /* imxrt1050-specific settings */
 #define CONFIG_FLEXSPI_IOBASE		0x402a8000
@@ -81,16 +82,8 @@ static inline void fsl_flexspi_lock_lut(struct fsl_flexspi_priv *flex)
 #define SEQID_PP		4
 #define SEQID_RDID		5
 #define SEQID_WRSR		6
-
-/* SPI NOR command codes */
-#define SPINOR_OP_PP		0x02	/* Page program (up to 256 bytes) */
-#define SPINOR_OP_RDSR		0x05	/* Read status register */
-#define SPINOR_OP_WRSR		0x01	/* Write status register 1 byte */
-#define SPINOR_OP_WREN		0x06	/* Write enable */
-#define SPINOR_OP_READ_1_4_4	0xeb	/* Read data bytes (Quad I/0 SPI) */
-#define SPINOR_OP_READ_1_1_4	0x6b	/* Read data bytes (Quad SPI) */
-#define SPINOR_OP_SE		0xd8	/* Sector erase (usually 64KiB) */
-#define SPINOR_OP_RDID		0x9f	/* Read JEDEC ID */
+#define SEQID_BE_4K		7
+#define SEQID_WRDI		8
 
 static void flexspi_set_lut(struct fsl_flexspi_priv *priv)
 {
@@ -145,6 +138,15 @@ static void flexspi_set_lut(struct fsl_flexspi_priv *priv)
 	writel(LUT0(CMD, PAD1, SPINOR_OP_WRSR) | LUT1(FSL_WRITE, PAD1, 0x2),
 			base + FLEXSPI_LUT(lut_base));
 
+	/* Erase a sector */
+	lut_base = SEQID_BE_4K * 4;
+	writel(LUT0(CMD, PAD1, SPINOR_OP_BE_4K) | LUT1(ADDR, PAD1, addrlen),
+			base + FLEXSPI_LUT(lut_base));
+
+	/* Write disable */
+	lut_base = SEQID_WRDI * 4;
+	writel(LUT0(CMD, PAD1, SPINOR_OP_WRDI), base + FLEXSPI_LUT(lut_base));
+
 	fsl_flexspi_lock_lut(priv);
 }
 
@@ -157,6 +159,8 @@ static int fsl_flexspi_get_seqid(struct fsl_flexspi_priv *flex, u8 cmd)
 		return SEQID_PP;
 	case SPINOR_OP_SE:
 		return SEQID_SE;
+	case SPINOR_OP_BE_4K:
+		return SEQID_BE_4K;
 	case SPINOR_OP_WREN:
 		return SEQID_WREN;
 	case SPINOR_OP_READ_1_1_4:
@@ -168,6 +172,8 @@ static int fsl_flexspi_get_seqid(struct fsl_flexspi_priv *flex, u8 cmd)
 		return SEQID_RDID;
 	case SPINOR_OP_WRSR:
 		return SEQID_WRSR;
+	case SPINOR_OP_WRDI:
+		return SEQID_WRDI;
 	default:
 		printf("FlexSPI: Unsupported cmd 0x%.2x\n", cmd);
 		break;
@@ -352,10 +358,12 @@ static int flexspi_xfer(struct fsl_flexspi_priv *priv, unsigned int bitlen,
 				return -1;
 			}
 			if (priv->cur_seqid == SEQID_WREN ||
-				priv->cur_seqid == SEQID_WRSR) {
+			    priv->cur_seqid == SEQID_WRSR ||
+			    priv->cur_seqid == SEQID_WRDI) {
 				fsl_flexspi_runcmd(priv, 0, 0);
 			}
-			if (priv->cur_seqid == SEQID_SE) {
+			if (priv->cur_seqid == SEQID_SE ||
+			    priv->cur_seqid == SEQID_BE_4K) {
 				fsl_flexspi_runcmd(priv, priv->sf_addr, 0);
 				fsl_flexspi_invalid(priv);
 			}
@@ -393,7 +401,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 {
 	struct fsl_flexspi *flexspi;
 	void *base;
-#if !defined(CONFIG_SPI_BOOT)
+#if !defined(CONFIG_FSPI_BOOT)
 	u32 reg;
 #endif
 
@@ -409,7 +417,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 
 	base = flexspi->priv.iobase;
 
-#if !defined(CONFIG_SPI_BOOT)
+#if !defined(CONFIG_FSPI_BOOT)
 	/* Reset the module */
 	writel(FLEXSPI_MCR0_SWRST_MASK, base + FLEXSPI_MCR0);
 	do {
