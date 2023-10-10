@@ -41,6 +41,37 @@
 #define _CONFIG_TFTPDIR	""
 #endif
 
+#if defined(CONFIG_CMD_SF)
+#define _CONFIG_EXTRA_SF_ENV_SETTINGS					\
+	"sfboot=sf probe 0 && sf read ${loadaddr}"			\
+		" ${kernel_sf_offset} ${kernel_sf_size} &&"		\
+		" run addip && run addrootfs && bootm ${loadaddr}\0"	\
+	"addrootfs=if test ${fstype} = \"ubi\"; then"			\
+			" setenv bootargs ${bootargs} ${argsubi};"	\
+		" elif test ${fstype} = \"jffs2\"; then"		\
+			" setenv bootargs ${bootargs} ${argsjffs2};"	\
+		" fi;\0"						\
+	"project=rootfs_flash\0"					\
+	"fstype=jffs2\0"						\
+	"argsubi=ubi.mtd=3 rootfstype=ubifs root=ubi0:rootfs rw\0"	\
+	"argsjffs2=rootfstype=jffs2 root=/dev/mtd3 rw\0"		\
+	"uboot_sf_offset=0x0\0"						\
+	"uboot_sf_size=0x60000\0"					\
+	"kernel_sf_offset=0x80000\0"					\
+	"kernel_sf_size=0x400000\0"					\
+	"rootfs_sf_offset=0x480000\0"					\
+	"rootfs_sf_size=0x380000\0"					\
+	"sf_kernel_update=tftp ${project}.uImage &&"			\
+		" sf erase ${kernel_sf_offset} ${kernel_sf_size} &&"	\
+		" sf write ${loadaddr} ${kernel_sf_offset} ${filesize}\0"\
+	"sf_rootfs_update=tftp ${project}.${fstype} &&"			\
+		" sf erase ${rootfs_sf_offset} ${rootfs_sf_size} &&"	\
+		" sf write ${loadaddr} ${rootfs_sf_offset} ${filesize}\0"\
+
+#else
+#define _CONFIG_EXTRA_SF_ENV_SETTINGS
+#endif
+
 /*
  * Address of U-Boot for SPI NOR boot
  */
@@ -72,6 +103,7 @@
 	"ipaddr=172.17.44.105\0"					\
 	"netmask=255.255.0.0\0"						\
 	_CONFIG_TFTPDIR							\
+	_CONFIG_EXTRA_SF_ENV_SETTINGS					\
 	_CONFIG_EXTRA_ENV_SETTINGS_VIDEO
 
 #endif /* __IMXRT1050_EVK_H */
