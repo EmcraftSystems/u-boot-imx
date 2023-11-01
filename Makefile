@@ -1007,6 +1007,11 @@ endif
 INPUTS-$(CONFIG_REMAKE_ELF) += u-boot.elf
 INPUTS-$(CONFIG_EFI_APP) += u-boot-app.efi
 INPUTS-$(CONFIG_EFI_STUB) += u-boot-payload.efi
+ifeq ($(CONFIG_SPL),y)
+INPUTS-$(CONFIG_FSPI_BOOT) += SPL.flexspi
+else
+INPUTS-$(CONFIG_FSPI_BOOT) += u-boot-dtb.flexspi
+endif
 
 # Generate this input file for binman
 ifeq ($(CONFIG_SPL),)
@@ -1240,7 +1245,11 @@ endif
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 	$(BOARD_SIZE_CHECK)
 
-%.flexspi: $(IMX_DEPS) %.imx
+u-boot-dtb.flexspi: $(IMX_DEPS) u-boot-dtb.imx
+	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
+	$(BOARD_SIZE_CHECK)
+
+SPL.flexspi: $(IMX_DEPS) SPL
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 	$(BOARD_SIZE_CHECK)
 
