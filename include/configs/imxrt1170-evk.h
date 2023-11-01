@@ -3,6 +3,8 @@
  * Copyright (C) 2022
  * Author(s): Jesse Taube <Mr.Bossman075@gmail.com>
  * Giulio Benetti <giulio.benetti@benettiengineering.com>
+ * Copyright (C) 2023 Emcraft Systems
+ * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  */
 
 #ifndef __IMXRT1170_EVK_H
