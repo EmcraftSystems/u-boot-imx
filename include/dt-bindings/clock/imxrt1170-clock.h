@@ -2,7 +2,7 @@
 /*
  * Copyright (C) 2022
  * Author(s): Jesse Taube <Mr.Bossman075@gmail.com>
- * Copyright (C) 2023 Emcraft Systems
+ * Copyright (C) 2023-2025 Emcraft Systems
  * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  */
 
@@ -41,18 +41,22 @@
 #define IMXRT1170_CLK_ROOT_BUS_LPSR		27
 #define IMXRT1170_CLK_ROOT_SEMC			28
 #define IMXRT1170_CLK_ROOT_GPT1			29
-#define IMXRT1170_CLK_ROOT_LPUART1		30
-#define IMXRT1170_CLK_ROOT_ENET1		31
-#define IMXRT1170_CLK_ROOT_USDHC1		32
+#define IMXRT1170_CLK_ROOT_FLEXSPI1		30
+#define IMXRT1170_CLK_ROOT_FLEXSPI2		31
+#define IMXRT1170_CLK_ROOT_LPUART1		32
+#define IMXRT1170_CLK_ROOT_ENET1		33
+#define IMXRT1170_CLK_ROOT_USDHC1		34
 
 /* periph gates */
-#define IMXRT1170_CLK_M7			33
-#define IMXRT1170_CLK_SEMC			34
-#define IMXRT1170_CLK_GPT1			35
-#define IMXRT1170_CLK_LPUART1			36
-#define IMXRT1170_CLK_ENET1			37
-#define IMXRT1170_CLK_USDHC1			38
+#define IMXRT1170_CLK_M7			35
+#define IMXRT1170_CLK_FLEXSPI1			36
+#define IMXRT1170_CLK_FLEXSPI2			37
+#define IMXRT1170_CLK_SEMC			38
+#define IMXRT1170_CLK_GPT1			39
+#define IMXRT1170_CLK_LPUART1			40
+#define IMXRT1170_CLK_ENET1			41
+#define IMXRT1170_CLK_USDHC1		        42
 
-#define IMXRT1170_CLK_END			38
+#define IMXRT1170_CLK_END			42
 
 #endif /* __DT_BINDINGS_CLOCK_IMXRT1170_H */
