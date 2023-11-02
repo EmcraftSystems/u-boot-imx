@@ -387,6 +387,15 @@ static struct nxp_fspi_devtype_data imxrt1050_data = {
 	.little_endian = true,  /* little-endian    */
 };
 
+static struct nxp_fspi_devtype_data imxrt1170_data = {
+	.rxfifo = SZ_256,
+	.txfifo = SZ_256,
+	.ahb_buf_size = SZ_4K,
+	.ahb_buf_num = 8,
+	.quirks = 0,
+	.little_endian = true,  /* little-endian    */
+};
+
 struct nxp_fspi {
 	struct udevice *dev;
 	void __iomem *iobase;
@@ -1207,6 +1216,7 @@ static const struct udevice_id nxp_fspi_ids[] = {
 	{ .compatible = "nxp,imx8dxl-fspi", .data = (ulong)&imx8dxl_data, },
 	{ .compatible = "nxp,imx8ulp-fspi", .data = (ulong)&imx8ulp_data, },
 	{ .compatible = "nxp,imxrt1050-fspi", .data = (void *)&imxrt1050_data, },
+	{ .compatible = "nxp,imxrt1170-fspi", .data = (void *)&imxrt1170_data, },
 	{ }
 };
 
