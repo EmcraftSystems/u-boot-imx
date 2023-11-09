@@ -819,8 +819,8 @@ static void nxp_fspi_read_rxfifo(struct nxp_fspi *f,
 		buf += i;
 		len -= i;
 		/* Wait for RXFIFO available */
-		ret = fspi_readl_poll_tout(f, f->iobase + FSPI_INTR,
-					   FSPI_INTR_IPRXWA, 0,
+		ret = fspi_readl_poll_tout(f, f->iobase + FSPI_IPRXFSTS,
+					   FSPI_IPRXFSTS_FILL(0xff), 0,
 					   POLL_TOUT, true);
 		WARN_ON(ret);
 
