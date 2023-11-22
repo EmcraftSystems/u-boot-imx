@@ -300,6 +300,7 @@ static int mxs_of_get_timings(struct udevice *dev,
 		return -EINVAL;
 	}
 
+#if CONFIG_IS_ENABLED(VIDEO_LINK)
 	priv->disp_dev = video_link_get_next_device(dev);
 	if (priv->disp_dev) {
 		ret = video_link_get_display_timings(timings);
@@ -307,7 +308,9 @@ static int mxs_of_get_timings(struct udevice *dev,
 			dev_err(dev, "failed to get any video link display timings\n");
 			return -EINVAL;
 		}
-	} else {
+	} else
+#endif
+		{
 		ret = ofnode_decode_display_timing(display_node, 0, timings);
 		if (ret) {
 			dev_err(dev, "failed to get any display timings\n");
@@ -418,12 +421,14 @@ static int mxs_video_probe(struct udevice *dev)
 	uc_priv->xsize = timings.hactive.typ;
 	uc_priv->ysize = timings.vactive.typ;
 
+#if !IS_ENABLED(CONFIG_IMXRT)
 	/* Enable dcache for the frame buffer */
 	fb_start = plat->base;
 	fb_end = plat->base + plat->size;
 
 	mmu_set_region_dcache_behaviour(fb_start, fb_end - fb_start,
 					DCACHE_WRITEBACK);
+#endif
 	video_set_flush_dcache(dev, true);
 
 	return ret;
