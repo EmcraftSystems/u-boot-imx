@@ -85,7 +85,7 @@ static void mxs_lcd_init(phys_addr_t reg_base, u32 fb_addr,
 	uint8_t valid_data = 0;
 	uint32_t vdctrl0;
 
-#if !(CONFIG_IS_ENABLED(CLK) && IS_ENABLED(CONFIG_IMX8))
+#if !(CONFIG_IS_ENABLED(CLK) && (IS_ENABLED(CONFIG_IMX8) || IS_ENABLED(CONFIG_IMXRT)))
 	/* Kick in the LCDIF clock */
 	mxs_set_lcdclk((u32)reg_base, timings->pixelclock.typ / 1000);
 #endif
@@ -390,7 +390,7 @@ struct mxsfb_priv {
 	struct reset_ctl_bulk clk_enable;
 #endif
 
-#if CONFIG_IS_ENABLED(CLK) && IS_ENABLED(CONFIG_IMX8)
+#if CONFIG_IS_ENABLED(CLK) && (IS_ENABLED(CONFIG_IMX8) || IS_ENABLED(CONFIG_IMXRT))
 	struct clk			lcdif_pix;
 	struct clk			lcdif_disp_axi;
 	struct clk			lcdif_axi;
@@ -485,6 +485,7 @@ static int mxs_of_get_timings(struct udevice *dev,
 		return -EINVAL;
 	}
 
+#if CONFIG_IS_ENABLED(VIDEO_LINK)
 	priv->disp_dev = video_link_get_next_device(dev);
 	if (priv->disp_dev) {
 		ret = video_link_get_display_timings(timings);
@@ -492,7 +493,9 @@ static int mxs_of_get_timings(struct udevice *dev,
 			dev_err(dev, "failed to get any video link display timings\n");
 			return -EINVAL;
 		}
-	} else {
+	} else
+#endif
+		{
 		ret = ofnode_decode_display_timing(display_node, 0, timings);
 		if (ret) {
 			dev_err(dev, "failed to get any display timings\n");
@@ -529,7 +532,8 @@ static int mxs_video_probe(struct udevice *dev)
 		return ret;
 	timings.flags |= DISPLAY_FLAGS_DE_HIGH;
 
-#if CONFIG_IS_ENABLED(CLK) && IS_ENABLED(CONFIG_IMX8)
+
+#if CONFIG_IS_ENABLED(CLK) && (IS_ENABLED(CONFIG_IMX8) || IS_ENABLED(CONFIG_IMXRT))
 	ret = clk_get_by_name(dev, "pix", &priv->lcdif_pix);
 	if (ret) {
 		printf("Failed to get pix clk\n");
@@ -621,7 +625,7 @@ static int mxs_video_probe(struct udevice *dev)
 		}
 	}
 
-#if CONFIG_IS_ENABLED(CLK) && IS_ENABLED(CONFIG_IMX8)
+#if CONFIG_IS_ENABLED(CLK) && (IS_ENABLED(CONFIG_IMX8) || IS_ENABLED(CONFIG_IMXRT))
 	ret = clk_set_rate(&priv->lcdif_pix, timings.pixelclock.typ);
 	if (ret < 0) {
 		printf("Failed to set pix clk rate\n");
@@ -659,12 +663,14 @@ static int mxs_video_probe(struct udevice *dev)
 	uc_priv->xsize = timings.hactive.typ;
 	uc_priv->ysize = timings.vactive.typ;
 
+#if !IS_ENABLED(CONFIG_IMXRT)
 	/* Enable dcache for the frame buffer */
 	fb_start = plat->base;
 	fb_end = plat->base + plat->size;
 
 	mmu_set_region_dcache_behaviour(fb_start, fb_end - fb_start,
 					DCACHE_WRITEBACK);
+#endif
 	video_set_flush_dcache(dev, true);
 	gd->fb_base = plat->base;
 
