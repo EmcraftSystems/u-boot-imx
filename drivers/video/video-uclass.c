@@ -121,11 +121,22 @@ static ulong alloc_fb(struct udevice *dev, ulong *addrp)
 int video_reserve(ulong *addrp)
 {
 	struct udevice *dev;
-	ulong size;
+	ulong size = 0;
 
 	if (IS_ENABLED(CONFIG_SPL_VIDEO_HANDOFF) && spl_phase() == PHASE_BOARD_F)
 		return 0;
 
+#if defined(CONFIG_FB_ADDR)
+	for (uclass_find_first_device(UCLASS_VIDEO, &dev);
+	     dev;
+	     uclass_find_next_device(&dev)) {
+		struct video_uc_plat *plat = dev_get_uclass_plat(dev);
+		size += plat->size;
+	}
+	gd->video_bottom = CONFIG_FB_ADDR;
+	gd->fb_base = CONFIG_FB_ADDR;
+	gd->video_top = CONFIG_FB_ADDR + size;
+#else
 	gd->video_top = *addrp;
 	for (uclass_find_first_device(UCLASS_VIDEO, &dev);
 	     dev;
@@ -141,6 +152,7 @@ int video_reserve(ulong *addrp)
 
 	gd->video_bottom = *addrp;
 	gd->fb_base = *addrp;
+#endif
 	debug("Video frame buffers from %lx to %lx\n", gd->video_bottom,
 	      gd->video_top);
 

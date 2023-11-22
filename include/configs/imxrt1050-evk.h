@@ -16,17 +16,19 @@
 #define PHYS_SDRAM			0x80000000
 #define PHYS_SDRAM_SIZE			(32 * 1024 * 1024)
 
-#define DMAMEM_SZ_ALL			(1 * 1024 * 1024)
+#define DMAMEM_SZ_ALL			(2 * 1024 * 1024)
 #define DMAMEM_BASE			(PHYS_SDRAM + PHYS_SDRAM_SIZE - \
 					 DMAMEM_SZ_ALL)
 
-#ifdef CONFIG_DM_VIDEO
-#define CONFIG_VIDEO_BMP_LOGO
+#ifdef CONFIG_VIDEO
+#define CONFIG_FB_ADDR			DMAMEM_BASE
 
 #define _CONFIG_EXTRA_ENV_SETTINGS_VIDEO \
 		"stdin=serial\0" \
 		"stdout=serial,vidconsole\0" \
-		"stderr=serial,vidconsole\0"
+		"stderr=serial,vidconsole\0" \
+		"splashsource=mmc_fs\0" \
+		"splashimage=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0"
 #else
 #define _CONFIG_EXTRA_ENV_SETTINGS_VIDEO ""
 #endif
