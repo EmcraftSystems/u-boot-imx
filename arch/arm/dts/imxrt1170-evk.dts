@@ -89,8 +89,8 @@
 	imxrt1170-evk {
 		pinctrl_lpuart1: lpuart1grp {
 			fsl,pins = <
-				IOMUXC_GPIO_AD_24_LPUART1_TXD 0xf1
-				IOMUXC_GPIO_AD_25_LPUART1_RXD 0xf1
+				IOMUXC_GPIO_AD_24_LPUART1_TXD (MXRT1170_PAD_DSE | MXRT1170_PAD_PUE)
+				IOMUXC_GPIO_AD_25_LPUART1_RXD (MXRT1170_PAD_DSE | MXRT1170_PAD_PUE)
 			>;
 		};
 
@@ -294,7 +294,7 @@
 		#size-cells = <0>;
 
 		ethphy0: ethernet-phy@2 {
-			reg = <2>;
+			reg = <0>;
 			micrel,led-mode = <1>;
 		};
 	};
