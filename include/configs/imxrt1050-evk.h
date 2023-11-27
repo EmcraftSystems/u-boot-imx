@@ -24,9 +24,6 @@
 #define CONFIG_FB_ADDR			DMAMEM_BASE
 
 #define _CONFIG_EXTRA_ENV_SETTINGS_VIDEO \
-		"stdin=serial\0" \
-		"stdout=serial,vidconsole\0" \
-		"stderr=serial,vidconsole\0" \
 		"splashsource=mmc_fs\0" \
 		"splashimage=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0"
 #else
