@@ -19,7 +19,7 @@
 #define PHYS_SDRAM			0x80000000
 #define PHYS_SDRAM_SIZE			(64 * 1024 * 1024)
 
-#define DMAMEM_SZ_ALL			(1 * 1024 * 1024)
+#define DMAMEM_SZ_ALL			(5 * 1024 * 1024)
 #define DMAMEM_BASE			(PHYS_SDRAM + PHYS_SDRAM_SIZE - \
 					 DMAMEM_SZ_ALL)
 
