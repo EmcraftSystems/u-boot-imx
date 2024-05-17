@@ -23,6 +23,11 @@ int arch_cpu_init(void)
 		{ DMAMEM_BASE,
 		  REGION_2, XN_DIS, PRIV_RW_USR_RW,
 		  STRONG_ORDER, (ffs(DMAMEM_SZ_ALL) - 2) },
+#if defined(FB_RESERVED_BASE)
+		{ FB_RESERVED_BASE,
+		  REGION_3, XN_DIS, PRIV_RW_USR_RW,
+		  STRONG_ORDER, (ffs(FB_RESERVED_SIZE) - 2) },
+#endif
 	};
 
 	/*

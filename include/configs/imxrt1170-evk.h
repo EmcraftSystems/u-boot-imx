@@ -21,9 +21,12 @@
 #define PHYS_SDRAM			0x80000000
 #define PHYS_SDRAM_SIZE			(64 * 1024 * 1024)
 
-#define DMAMEM_SZ_ALL			(1 * 1024 * 1024)
-#define DMAMEM_BASE			(PHYS_SDRAM + PHYS_SDRAM_SIZE - \
-					 DMAMEM_SZ_ALL)
+#define FB_RESERVED_SIZE		(4 * 1024 * 1024) /* should be 2^N, 5<=N<=32 */
+#define FB_RESERVED_BASE		(PHYS_SDRAM + PHYS_SDRAM_SIZE - \
+					 FB_RESERVED_SIZE) /* should be multiple to the region size i.e. FB_RESERVED_SIZE */
+
+#define DMAMEM_SZ_ALL			(1 * 1024 * 1024)  /* should be 2^N */
+#define DMAMEM_BASE			(FB_RESERVED_BASE - DMAMEM_SZ_ALL) /* should be multiple to DMAMEM_SZ_ALL */
 
 /* For SPL */
 #define CFG_SYS_UBOOT_START		0x202403FD
