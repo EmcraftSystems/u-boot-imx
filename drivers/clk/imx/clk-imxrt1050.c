@@ -2,6 +2,8 @@
 /*
  * Copyright(C) 2019
  * Author(s): Giulio Benetti <giulio.benetti@benettiengineering.com>
+ * Copyright (C) 2023 Emcraft Systems
+ * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  */
 
 #include <common.h>
@@ -20,6 +22,7 @@ static const char * const pll1_bypass_sels[] = {"pll1_arm", "pll1_arm_ref_sel", 
 static const char * const pll2_bypass_sels[] = {"pll2_sys", "pll2_sys_ref_sel", };
 static const char * const pll3_bypass_sels[] = {"pll3_usb_otg", "pll3_usb_otg_ref_sel", };
 static const char * const pll5_bypass_sels[] = {"pll5_video", "pll5_video_ref_sel", };
+static const char * const pll6_bypass_sels[] = {"pll6_enet", "osc", };
 
 static const char *const pre_periph_sels[] = { "pll2_sys", "pll2_pfd2_396m", "pll2_pfd0_352m", "arm_podf", };
 static const char *const periph_sels[] = { "pre_periph_sel", "todo", };
@@ -62,6 +65,9 @@ static int imxrt1050_clk_probe(struct udevice *dev)
 	clk_dm(IMXRT1050_CLK_PLL5_VIDEO,
 	       imx_clk_pllv3(IMX_PLLV3_AV, "pll5_video", "pll5_video_ref_sel",
 			     base + 0xa0, 0x7f));
+	clk_dm(IMXRT1050_CLK_PLL6_ENET,
+	       imx_clk_pllv3(IMX_PLLV3_ENET, "pll6_enet", "osc",
+			     base + 0xe0, 0x1));
 
 	/* PLL bypass out */
 	clk_dm(IMXRT1050_CLK_PLL1_BYPASS,
@@ -83,6 +89,11 @@ static int imxrt1050_clk_probe(struct udevice *dev)
 	       imx_clk_mux_flags("pll5_bypass", base + 0xa0, 16, 1,
 				 pll5_bypass_sels,
 				 ARRAY_SIZE(pll5_bypass_sels),
+				 CLK_SET_RATE_PARENT));
+	clk_dm(IMXRT1050_CLK_PLL6_BYPASS,
+	       imx_clk_mux_flags("pll6_bypass", base + 0xe0, 16, 1,
+				 pll6_bypass_sels,
+				 ARRAY_SIZE(pll6_bypass_sels),
 				 CLK_SET_RATE_PARENT));
 
 	clk_dm(IMXRT1050_CLK_VIDEO_POST_DIV_SEL,
@@ -145,6 +156,9 @@ static int imxrt1050_clk_probe(struct udevice *dev)
 	clk_dm(IMXRT1050_CLK_AHB_PODF,
 	       imx_clk_divider("ahb_podf", "periph_sel",
 			       base + 0x14, 10, 3));
+	clk_dm(IMXRT1050_CLK_IPG_PODF,
+	       imx_clk_divider("ipg_podf", "ahb_podf",
+			       base + 0x14, 8, 2));
 	clk_dm(IMXRT1050_CLK_USDHC1_PODF,
 	       imx_clk_divider("usdhc1_podf", "usdhc1_sel",
 			       base + 0x24, 11, 3));
@@ -178,6 +192,10 @@ static int imxrt1050_clk_probe(struct udevice *dev)
 	       imx_clk_gate2("lcdif_pix", "lcdif", base + 0x74, 10));
 	clk_dm(IMXRT1050_CLK_USBOH3,
 	       imx_clk_gate2("usboh3", "pll3_usb_otg", base + 0x80, 0));
+
+	clk_dm(IMXRT1050_CLK_ENET, imx_clk_gate2("enet", "ipg_podf", base + 0x6c, 10));
+	clk_dm(IMXRT1050_CLK_ENET_REF,
+	       imx_clk_fixed_factor("enet_ref", "pll6_enet", 1, 10));
 
 	struct clk *clk, *clk1;
 
