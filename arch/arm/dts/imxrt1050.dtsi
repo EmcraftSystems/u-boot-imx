@@ -88,7 +88,7 @@
 			compatible = "fsl,imxrt1050-usdhc", "fsl,imx6sl-usdhc";
 			reg = <0x402c0000 0x4000>;
 			interrupts = <110>;
-			clocks = <&clks IMXRT1050_CLK_IPG_PDOF>,
+			clocks = <&clks IMXRT1050_CLK_IPG_PODF>,
 				<&clks IMXRT1050_CLK_OSC>,
 				<&clks IMXRT1050_CLK_USDHC1>;
 			clock-names = "ipg", "ahb", "per";
@@ -164,11 +164,12 @@
 			status = "disabled";
 		};
 
-		gpt1: gpt1@401ec000 {
-			compatible = "fsl,imxrt-gpt";
+		gpt: timer@401ec000 {
+			compatible = "fsl,imxrt1050-gpt", "fsl,imx6dl-gpt", "fsl,imx6sl-gpt";
 			reg = <0x401ec000 0x4000>;
 			interrupts = <100>;
-			clocks = <&osc>;
+			clocks = <&osc3M>;
+			clock-names = "per";
 			status = "disabled";
 		};
 
