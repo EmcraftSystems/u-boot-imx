@@ -85,13 +85,11 @@
 		};
 
 		usdhc1: mmc@402c0000 {
-			compatible = "fsl,imxrt1050-usdhc", "fsl,imx6sl-usdhc";
+			compatible = "fsl,imxrt-usdhc";
 			reg = <0x402c0000 0x4000>;
 			interrupts = <110>;
-			clocks = <&clks IMXRT1050_CLK_IPG_PODF>,
-				<&clks IMXRT1050_CLK_OSC>,
-				<&clks IMXRT1050_CLK_USDHC1>;
-			clock-names = "ipg", "ahb", "per";
+			clocks = <&clks IMXRT1050_CLK_USDHC1>;
+			clock-names = "per";
 			bus-width = <4>;
 			fsl,wp-controller;
 			no-1-8-v;

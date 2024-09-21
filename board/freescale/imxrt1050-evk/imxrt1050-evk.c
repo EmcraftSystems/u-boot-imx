@@ -12,6 +12,7 @@
 #include <log.h>
 #include <ram.h>
 #include <spl.h>
+#include <env.h>
 #include <asm/global_data.h>
 #include <asm/io.h>
 #include <asm/armv7m.h>
@@ -84,6 +85,24 @@ u32 spl_boot_device(void)
 int board_init(void)
 {
 	gd->bd->bi_boot_params = gd->bd->bi_dram[0].start + 0x100;
+
+	return 0;
+}
+
+int board_late_init(void)
+{
+	void * anatop_base;
+	u32 id;
+
+	anatop_base = (void *)ofnode_get_addr(ofnode_by_compatible(ofnode_null(), "fsl,imxrt-anatop"));
+	id = * (u32 *)(anatop_base + 0x260);
+	if (id == 0x006c0000) {
+		/* runnig on IMXRT106X per
+		 * https://community.nxp.com/t5/i-MX-Processors/Device-Identification-Register/m-p/1535727
+		 */
+		env_set("board", "imxrt1060-evk");
+		env_set("board_name", "imxrt1060-evk");
+	}
 
 	return 0;
 }
