@@ -12,6 +12,10 @@ config IMXRT1050
 	bool
 	select IMXRT
 
+config IMXRT1060
+	bool
+	select IMXRT
+
 config IMXRT1170
 	bool
 	select IMXRT
@@ -33,6 +37,10 @@ config TARGET_IMXRT1024_EVK
 
 config TARGET_IMXRT1050_EVK
 	bool "Support imxrt1050 EVK board"
+	select IMXRT1050
+
+config TARGET_IMXRT1060_EVK
+	bool "Support imxrt1060 EVK board"
 	select IMXRT1050
 
 config TARGET_IMXRT1170_EVK

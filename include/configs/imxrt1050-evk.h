@@ -19,7 +19,6 @@
 #define DMAMEM_SZ_ALL			(2 * 1024 * 1024)
 #define DMAMEM_BASE			(PHYS_SDRAM + PHYS_SDRAM_SIZE - \
 					 DMAMEM_SZ_ALL)
-#define CONFIG_SYS_BOOTM_LEN		SZ_32M
 
 #ifdef CONFIG_DM_VIDEO
 #define CONFIG_VIDEO_BMP_LOGO
@@ -35,17 +34,24 @@
 #define _CONFIG_EXTRA_ENV_SETTINGS_VIDEO ""
 #endif
 
+#if CONFIG_IS_ENABLED(TARGET_IMXRT1050_EVK)
+#define _CONFIG_TFTPDIR	"tftpdir=imxrt1050/\0"
+#elif CONFIG_IS_ENABLED(TARGET_IMXRT1060_EVK)
+#define _CONFIG_TFTPDIR	"tftpdir=imxrt1060/\0"
+#else
+#define _CONFIG_TFTPDIR	""
+#endif
+
 /*
  * Configuration of the external SDRAM memory
  */
 
 #define CFG_SYS_UBOOT_START		0x800023FD
 
-#define CONFIG_EXTRA_ENV_SETTINGS \
+#define CFG_EXTRA_ENV_SETTINGS						\
 	"image=rootfs.uImage\0"						\
 	"uboot=u-boot.img\0"						\
 	"spl=SPL\0"							\
-	"tftpdir=imxrt1050/\0"						\
 	"mmc_update_spl=tftp ${tftpdir}${spl} &&"			\
                 " setexpr tmp ${filesize} / 0x200 &&"			\
 		" setexpr tmp ${tmp} + 1 &&"				\
@@ -66,6 +72,7 @@
 	"gatewayip=172.17.0.1\0"					\
 	"ipaddr=172.17.44.105\0"					\
 	"netmask=255.255.0.0\0"						\
+	_CONFIG_TFTPDIR							\
 	_CONFIG_EXTRA_ENV_SETTINGS_VIDEO
 
 #endif /* __IMXRT1050_EVK_H */
