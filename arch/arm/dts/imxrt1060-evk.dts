@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: (GPL-2.0+ MIT)
+/*
+ * Copyright (C) 2024 Emcraft Systems
+ * Author(s): Alexander Sanochkin <sasha@emcraft.com>
+ */
+
+/dts-v1/;
+#include "imxrt1050-evk.dts"
+#include "imxrt1050-evk-u-boot.dtsi"
+
+/ {
+	model = "NXP IMXRT1060-evk board";
+
+};
