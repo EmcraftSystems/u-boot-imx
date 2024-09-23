@@ -20,8 +20,7 @@
 #define DMAMEM_BASE			(PHYS_SDRAM + PHYS_SDRAM_SIZE - \
 					 DMAMEM_SZ_ALL)
 
-#ifdef CONFIG_DM_VIDEO
-#define CONFIG_VIDEO_BMP_LOGO
+#ifdef CONFIG_VIDEO
 
 #define _CONFIG_EXTRA_ENV_SETTINGS_VIDEO \
 		"stdin=serial\0" \
