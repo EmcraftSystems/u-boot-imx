@@ -81,7 +81,50 @@ static void mxs_lcd_init(struct udevice *dev, u32 fb_addr,
 	uint8_t valid_data = 0;
 	uint32_t vdctrl0;
 
-#if !(CONFIG_IS_ENABLED(CLK) && (IS_ENABLED(CONFIG_IMX8) || IS_ENABLED(CONFIG_IMXRT)))
+#if CONFIG_IS_ENABLED(CLK)
+	struct clk clk;
+	int ret;
+
+	ret = clk_get_by_name(dev, "pix", &clk);
+	if (ret) {
+		dev_err(dev, "Failed to get mxs pix clk: %d\n", ret);
+		return;
+	}
+
+	ret = clk_set_rate(&clk, timings->pixelclock.typ);
+	if (ret < 0) {
+		dev_err(dev, "Failed to set mxs pix clk: %d\n", ret);
+		return;
+	}
+
+	ret = clk_enable(&clk);
+	if (ret < 0) {
+		dev_err(dev, "Failed to enable mxs pix clk: %d\n", ret);
+		return;
+	}
+
+	ret = clk_get_by_name(dev, "axi", &clk);
+	if (ret < 0) {
+		debug("%s: Failed to get mxs axi clk: %d\n", __func__, ret);
+	} else {
+		ret = clk_enable(&clk);
+		if (ret < 0) {
+			dev_err(dev, "Failed to enable mxs axi clk: %d\n", ret);
+			return;
+		}
+	}
+
+	ret = clk_get_by_name(dev, "disp_axi", &clk);
+	if (ret < 0) {
+		debug("%s: Failed to get mxs disp_axi clk: %d\n", __func__, ret);
+	} else {
+		ret = clk_enable(&clk);
+		if (ret < 0) {
+			dev_err(dev, "Failed to enable mxs disp_axi clk: %d\n", ret);
+			return;
+		}
+	}
+#else
 	/* Kick in the LCDIF clock */
 	mxs_set_lcdclk(priv->reg_base, timings->pixelclock.typ / 1000);
 #endif
@@ -234,226 +277,6 @@ static int mxs_remove_common(phys_addr_t reg_base, u32 fb)
 	return 0;
 }
 
-#ifndef CONFIG_DM_VIDEO
-
-static GraphicDevice panel;
-static int setup;
-static struct fb_videomode fbmode;
-static int depth;
-
-int mxs_lcd_panel_setup(struct fb_videomode mode, int bpp,
-	uint32_t base_addr)
-{
-	fbmode = mode;
-	depth  = bpp;
-	panel.isaBase  = base_addr;
-
-	setup = 1;
-
-	return 0;
-}
-
-void mxs_lcd_get_panel(struct display_panel *dispanel)
-{
-	dispanel->width = fbmode.xres;
-	dispanel->height = fbmode.yres;
-	dispanel->reg_base = panel.isaBase;
-	dispanel->gdfindex = panel.gdfIndex;
-	dispanel->gdfbytespp = panel.gdfBytesPP;
-}
-
-void lcdif_power_down(void)
-{
-	mxs_remove_common(panel.isaBase, panel.frameAdrs);
-}
-
-void *video_hw_init(void)
-{
-	int bpp = -1;
-	int ret = 0;
-	char *penv;
-	void *fb = NULL;
-	struct ctfb_res_modes mode;
-	struct display_timing timings;
-
-	puts("Video: ");
-
-	if (!setup) {
-
-		/* Suck display configuration from "videomode" variable */
-		penv = env_get("videomode");
-		if (!penv) {
-			printf("MXSFB: 'videomode' variable not set!\n");
-			return NULL;
-		}
-
-		bpp = video_get_params(&mode, penv);
-		panel.isaBase  = MXS_LCDIF_BASE;
-	} else {
-		mode.xres = fbmode.xres;
-		mode.yres = fbmode.yres;
-		mode.pixclock = fbmode.pixclock;
-		mode.left_margin = fbmode.left_margin;
-		mode.right_margin = fbmode.right_margin;
-		mode.upper_margin = fbmode.upper_margin;
-		mode.lower_margin = fbmode.lower_margin;
-		mode.hsync_len = fbmode.hsync_len;
-		mode.vsync_len = fbmode.vsync_len;
-		mode.sync = fbmode.sync;
-		mode.vmode = fbmode.vmode;
-		bpp = depth;
-	}
-
-	mode.pixclock_khz = PS2KHZ(mode.pixclock);
-	mode.pixclock = mode.pixclock_khz * 1000;
-
-	if (CONFIG_IS_ENABLED(IMX_MODULE_FUSE)) {
-		if (check_module_fused(MODULE_LCDIF)) {
-			printf("LCDIF@0x%x is fused, disable it\n", MXS_LCDIF_BASE);
-			return NULL;
-		}
-	}
-	/* fill in Graphic device struct */
-	sprintf(panel.modeIdent, "%dx%dx%d", mode.xres, mode.yres, bpp);
-
-	panel.winSizeX = mode.xres;
-	panel.winSizeY = mode.yres;
-	panel.plnSizeX = mode.xres;
-	panel.plnSizeY = mode.yres;
-
-	switch (bpp) {
-	case 24:
-	case 18:
-		panel.gdfBytesPP = 4;
-		panel.gdfIndex = GDF_32BIT_X888RGB;
-		break;
-	case 16:
-		panel.gdfBytesPP = 2;
-		panel.gdfIndex = GDF_16BIT_565RGB;
-		break;
-	case 8:
-		panel.gdfBytesPP = 1;
-		panel.gdfIndex = GDF__8BIT_INDEX;
-		break;
-	default:
-		printf("MXSFB: Invalid BPP specified! (bpp = %i)\n", bpp);
-		return NULL;
-	}
-
-	panel.memSize = mode.xres * mode.yres * panel.gdfBytesPP;
-
-	/* Allocate framebuffer */
-	fb = memalign(ARCH_DMA_MINALIGN,
-		      roundup(panel.memSize, ARCH_DMA_MINALIGN));
-	if (!fb) {
-		printf("MXSFB: Error allocating framebuffer!\n");
-		return NULL;
-	}
-
-	/* Wipe framebuffer */
-	memset(fb, 0, panel.memSize);
-
-	panel.frameAdrs = (u32)fb;
-
-	printf("%s\n", panel.modeIdent);
-
-	video_ctfb_mode_to_display_timing(&mode, &timings);
-	timings.flags |= DISPLAY_FLAGS_DE_HIGH; /* Force enable pol */
-
-	ret = mxs_probe_common(panel.isaBase, &timings, bpp, (u32)fb, false);
-	if (ret)
-		goto dealloc_fb;
-
-#ifdef CONFIG_VIDEO_GIS
-	/* Entry for GIS */
-	mxc_enable_gis();
-#endif
-
-	return (void *)&panel;
-
-dealloc_fb:
-	free(fb);
-
-	return NULL;
-}
-#else /* ifndef CONFIG_DM_VIDEO */
-
-struct mxsfb_priv {
-	fdt_addr_t reg_base;
-	struct udevice *disp_dev;
-
-#if IS_ENABLED(CONFIG_DM_RESET)
-	struct reset_ctl_bulk soft_resetn;
-	struct reset_ctl_bulk clk_enable;
-#endif
-
-#if CONFIG_IS_ENABLED(CLK) && (IS_ENABLED(CONFIG_IMX8) || IS_ENABLED(CONFIG_IMXRT))
-	struct clk			lcdif_pix;
-	struct clk			lcdif_disp_axi;
-	struct clk			lcdif_axi;
-#endif
-};
-
-#if IS_ENABLED(CONFIG_DM_RESET)
-static int lcdif_rstc_reset(struct reset_ctl_bulk *rstc, bool assert)
-{
-	int ret;
-
-	if (!rstc)
-		return 0;
-
-	ret = assert ? reset_assert_bulk(rstc)	:
-		       reset_deassert_bulk(rstc);
-
-	return ret;
-}
-
-static int lcdif_of_parse_resets(struct udevice *dev)
-{
-	int ret;
-	ofnode parent, child;
-	struct ofnode_phandle_args args;
-	struct reset_ctl_bulk rstc;
-	const char *compat;
-	uint32_t rstc_num = 0;
-
-	struct mxsfb_priv *priv = dev_get_priv(dev);
-
-	ret = dev_read_phandle_with_args(dev, "resets", "#reset-cells", 0,
-					 0, &args);
-	if (ret)
-		return ret;
-
-	parent = args.node;
-	ofnode_for_each_subnode(child, parent) {
-		compat = ofnode_get_property(child, "compatible", NULL);
-		if (!compat)
-			continue;
-
-		ret = reset_get_bulk_nodev(child, &rstc);
-		if (ret)
-			continue;
-
-		if (!of_compat_cmp("lcdif,soft-resetn", compat, 0)) {
-			priv->soft_resetn = rstc;
-			rstc_num++;
-		} else if (!of_compat_cmp("lcdif,clk-enable", compat, 0)) {
-			priv->clk_enable = rstc;
-			rstc_num++;
-		}
-		else
-			dev_warn(dev, "invalid lcdif reset node: %s\n", compat);
-	}
-
-	if (!rstc_num) {
-		dev_err(dev, "no invalid reset control exists\n");
-		return -EINVAL;
-	}
-
-	return 0;
-}
-#endif
-
 static int mxs_of_get_timings(struct udevice *dev,
 			      struct display_timing *timings,
 			      u32 *bpp)
@@ -482,7 +305,6 @@ static int mxs_of_get_timings(struct udevice *dev,
 		return -EINVAL;
 	}
 
-#if CONFIG_IS_ENABLED(VIDEO_LINK)
 	priv->disp_dev = video_link_get_next_device(dev);
 	if (priv->disp_dev) {
 		ret = video_link_get_display_timings(timings);
@@ -490,9 +312,7 @@ static int mxs_of_get_timings(struct udevice *dev,
 			dev_err(dev, "failed to get any video link display timings\n");
 			return -EINVAL;
 		}
-	} else
-#endif
-		{
+	} else {
 		ret = ofnode_decode_display_timing(display_node, 0, timings);
 		if (ret) {
 			dev_err(dev, "failed to get any display timings\n");
@@ -529,52 +349,10 @@ static int mxs_video_probe(struct udevice *dev)
 		return ret;
 	timings.flags |= DISPLAY_FLAGS_DE_HIGH;
 
-
-#if CONFIG_IS_ENABLED(CLK) && (IS_ENABLED(CONFIG_IMX8) || IS_ENABLED(CONFIG_IMXRT))
-	ret = clk_get_by_name(dev, "pix", &priv->lcdif_pix);
-	if (ret) {
-		printf("Failed to get pix clk\n");
-		return ret;
-	}
-
-	ret = clk_get_by_name(dev, "disp_axi", &priv->lcdif_disp_axi);
-	if (ret) {
-		printf("Failed to get disp_axi clk\n");
-		return ret;
-	}
-
-	ret = clk_get_by_name(dev, "axi", &priv->lcdif_axi);
-	if (ret) {
-		printf("Failed to get axi clk\n");
-		return ret;
-	}
-
-	ret = clk_enable(&priv->lcdif_axi);
-	if (ret) {
-		printf("unable to enable lcdif_axi clock\n");
-		return ret;
-	}
-
-	ret = clk_enable(&priv->lcdif_disp_axi);
-	if (ret) {
-		printf("unable to enable lcdif_disp_axi clock\n");
-		return ret;
-	}
-#endif
-
-#if IS_ENABLED(CONFIG_DM_RESET)
-	ret = lcdif_of_parse_resets(dev);
-	if (!ret) {
-		ret = lcdif_rstc_reset(&priv->soft_resetn, false);
-		if (ret) {
-			dev_err(dev, "deassert soft_resetn failed\n");
-			return ret;
-		}
-
-		ret = lcdif_rstc_reset(&priv->clk_enable, true);
-		if (ret) {
-			dev_err(dev, "assert clk_enable failed\n");
-			return ret;
+	if (CONFIG_IS_ENABLED(IMX_MODULE_FUSE)) {
+		if (check_module_fused(MODULE_LCDIF)) {
+			printf("LCDIF@0x%lx is fused, disable it\n", (ulong)priv->reg_base);
+			return -ENODEV;
 		}
 	}
 
@@ -621,21 +399,7 @@ static int mxs_video_probe(struct udevice *dev)
 		}
 	}
 
-#if CONFIG_IS_ENABLED(CLK) && (IS_ENABLED(CONFIG_IMX8) || IS_ENABLED(CONFIG_IMXRT))
-	ret = clk_set_rate(&priv->lcdif_pix, timings.pixelclock.typ);
-	if (ret < 0) {
-		printf("Failed to set pix clk rate\n");
-		return ret;
-	}
-
-	ret = clk_enable(&priv->lcdif_pix);
-	if (ret) {
-		printf("unable to enable lcdif_pix clock\n");
-		return ret;
-	}
-#endif
-
-	ret = mxs_probe_common(priv->reg_base, &timings, bpp, plat->base, enable_bridge);
+	ret = mxs_probe_common(dev, &timings, bpp, plat->base, enable_bridge);
 	if (ret)
 		return ret;
 
@@ -664,14 +428,12 @@ static int mxs_video_probe(struct udevice *dev)
 	uc_priv->xsize = timings.hactive.typ;
 	uc_priv->ysize = timings.vactive.typ;
 
-#if !IS_ENABLED(CONFIG_IMXRT)
 	/* Enable dcache for the frame buffer */
 	fb_start = plat->base;
 	fb_end = plat->base + plat->size;
 
 	mmu_set_region_dcache_behaviour(fb_start, fb_end - fb_start,
 					DCACHE_WRITEBACK);
-#endif
 	video_set_flush_dcache(dev, true);
 	gd->fb_base = plat->base;
 

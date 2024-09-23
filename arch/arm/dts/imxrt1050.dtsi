@@ -149,19 +149,6 @@
 			#interrupt-cells = <2>;
 		};
 
-		lcdif: lcdif@402b8000 {
-			compatible = "fsl,imxrt-lcdif";
-			reg = <0x402b8000 0x4000>;
-			interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&clks IMXRT1050_CLK_LCDIF_PIX>,
-				 <&clks IMXRT1050_CLK_LCDIF_APB>,
-				 <&clks IMXRT1050_CLK_DUMMY>;
-			clock-names = "pix", "axi", "disp_axi";
-			assigned-clocks = <&clks IMXRT1050_CLK_LCDIF_SEL>;
-			assigned-clock-parents = <&clks IMXRT1050_CLK_PLL5_VIDEO>;
-			status = "disabled";
-		};
-
 		gpt: timer@401ec000 {
 			compatible = "fsl,imxrt1050-gpt", "fsl,imx6dl-gpt", "fsl,imx6sl-gpt";
 			reg = <0x401ec000 0x4000>;
