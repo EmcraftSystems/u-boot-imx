@@ -17,6 +17,8 @@
 
 #define MXS_LCDIF_BASE		0x402b8000
 
+#define FEC_QUIRK_ENET_MAC
+
 #if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
 #include <asm/mach-imx/regs-lcdif.h>
 #endif
