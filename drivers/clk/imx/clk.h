@@ -17,6 +17,7 @@ enum imx_pllv3_type {
 	IMX_PLLV3_AV,
 	IMX_PLLV3_ENET,
 	IMX_PLLV3_ENET_IMX7,
+	IMX_PLLV3_ENET_1G,
 	IMX_PLLV3_SYS_VF610,
 	IMX_PLLV3_DDR_IMX7,
 };
@@ -227,6 +228,13 @@ static inline struct clk *imx_clk_gate_flags(const char *name, const char *paren
 {
 	return clk_register_gate(NULL, name, parent, flags | CLK_SET_RATE_PARENT, reg,
 			shift, 0, NULL);
+}
+
+static inline struct clk *imx_clk_gate_dis(const char *name, const char *parent,
+		void __iomem *reg, u8 shift)
+{
+	return clk_register_gate(NULL, name, parent, CLK_SET_RATE_PARENT, reg,
+			shift, CLK_GATE_SET_TO_DISABLE, NULL);
 }
 
 static inline struct clk *imx_clk_gate3(const char *name, const char *parent,
