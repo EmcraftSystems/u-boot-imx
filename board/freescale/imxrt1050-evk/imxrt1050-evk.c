@@ -74,7 +74,7 @@ void spl_board_init(void)
 u32 spl_boot_device(void)
 {
 	/* There is no way to find the boot device so look if there is a valid IVT in RAM for MMC */
-	u32 nor_ivt = *(u32 *)(CONFIG_SYS_LOAD_ADDR - 0xC00);
+	u32 nor_ivt = *(u32 *)(CONFIG_SPL_TEXT_BASE - 0xC00);
 
 	if (nor_ivt == 0x402000d1)
 		return BOOT_DEVICE_MMC1;
