@@ -60,10 +60,10 @@
 	"kernel_sf_size=0x400000\0"					\
 	"rootfs_sf_offset=0x480000\0"					\
 	"rootfs_sf_size=0x380000\0"					\
-	"sf_kernel_update=tftp ${project}.uImage &&"			\
+	"sf_kernel_update=tftp ${tftpdir}${project}.uImage &&"		\
 		" sf erase ${kernel_sf_offset} ${kernel_sf_size} &&"	\
 		" sf write ${loadaddr} ${kernel_sf_offset} ${filesize}\0"\
-	"sf_rootfs_update=tftp ${project}.${fstype} &&"			\
+	"sf_rootfs_update=tftp ${tftpdir}${project}.${fstype} &&"	\
 		" sf erase ${rootfs_sf_offset} ${rootfs_sf_size} &&"	\
 		" sf write ${loadaddr} ${rootfs_sf_offset} ${filesize}\0"\
 
