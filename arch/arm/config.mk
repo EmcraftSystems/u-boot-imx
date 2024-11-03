@@ -170,6 +170,9 @@ endif
 else
 ifeq ($(CONFIG_OF_SEPARATE),y)
 INPUTS-y += u-boot-dtb.imx
+ifeq ($(CONFIG_FSPI_BOOT),y)
+INPUTS-y += u-boot-dtb.flexspi
+endif
 else
 INPUTS-y += u-boot.imx
 endif
