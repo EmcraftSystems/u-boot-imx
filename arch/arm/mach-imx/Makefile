@@ -4,6 +4,7 @@
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # (C) Copyright 2011 Freescale Semiconductor, Inc.
+# (C) Copyright 2023 Emcraft Systems
 
 ifeq ($(SOC),$(filter $(SOC),mx25 mx35 mx5 mx6 mx7 imx8m imx9 vf610))
 obj-y	= iomux-v3.o
@@ -159,12 +160,22 @@ QSPI_HEADER_OFF = 0
 QSPI_UBOOT_OFF = 1
 endif
 
+FLEXSPI_HEADER = flexspi_cb.bin
+
 ifeq ($(CONFIG_QSPI_BOOT),y)
 $(QSPI_HEADER): $(QSPI_HEADER_SOURCE) FORCE
 	@cp $< $@
 
 else
 $(QSPI_HEADER):
+
+endif
+
+ifeq ($(CONFIG_FSPI_BOOT),y)
+$(FLEXSPI_HEADER): board/$(BOARDDIR)/flexspi_cb.o
+	$(OBJCOPY) -O binary board/$(BOARDDIR)/flexspi_cb.o $@
+else
+$(FLEXSPI_HEADER):
 
 endif
 
@@ -202,6 +213,9 @@ endif
 else ifeq ($(CONFIG_OF_SEPARATE),y)
 MKIMAGEFLAGS_u-boot-dtb.imx = -n $(filter-out $(PLUGIN).bin $(QSPI_HEADER) $< $(PHONY),$^) \
 	-T $(IMAGE_TYPE) -e $(CONFIG_TEXT_BASE)
+ifeq ($(CONFIG_FSPI_BOOT), y)
+MKIMAGEFLAGS_u-boot-dtb.imx += -a $(CONFIG_FLEXSPI_FLASHBASE)
+endif
 u-boot-dtb.imx: MKIMAGEOUTPUT = u-boot-dtb.imx.log
 
 u-boot-dtb.imx: u-boot-dtb.bin u-boot-dtb.cfgout $(PLUGIN).bin $(QSPI_HEADER) FORCE
@@ -220,6 +234,17 @@ ifeq ($(CONFIG_QSPI_BOOT),y)
 endif
 endif
 endif
+
+
+ifeq ($(CONFIG_FSPI_BOOT),y)
+u-boot-dtb.flexspi: u-boot-dtb.imx $(FLEXSPI_HEADER)
+	@dd if=u-boot-dtb.imx of=u-boot.tmp bs=1k seek=$(QSPI_UBOOT_OFF)
+	@dd if=flexspi_cb.bin of=u-boot.tmp bs=1k seek=$(QSPI_HEADER_OFF) conv=notrunc
+	@mv u-boot.tmp $@
+	@rm flexspi_cb.bin
+	@echo "Packed FlexSPI config block with $@"
+endif
+
 
 ifdef CONFIG_ARM64
 ifeq ($(CONFIG_ARCH_IMX8M), y)

@@ -1208,6 +1208,20 @@ config QSPI_BOOT
 	  booted via QSPI flash. This is not a must, some SoCs need this,
 	  some not.
 
+config FSPI_BOOT
+	bool "Support for booting from i.MX FlexSPI controller (Quad/Octal SPI flash)"
+	help
+	  Enabling this will make a U-Boot binary that is capable of being
+	  booted via FlexSPI. This is not a must, some SoCs need this,
+	  some not.
+
+config FLEXSPI_FLASHBASE
+	hex "FlexSPI flash base address"
+	default 0x30000000
+	depends on FSPI_BOOT
+	help
+	  The base address to which the FlexSPI controller has mapped the flash
+
 config SATA_BOOT
 	bool "Support for booting from SATA"
 	help
