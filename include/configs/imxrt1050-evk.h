@@ -53,7 +53,7 @@
 	"project=rootfs_flash\0"					\
 	"fstype=jffs2\0"						\
 	"argsubi=ubi.mtd=3 rootfstype=ubifs root=ubi0:rootfs rw\0"	\
-	"argsjffs2=rootfstype=jffs2 root=/dev/mtd3 rw\0"		\
+	"argsjffs2=rootfstype=jffs2 root=/dev/mtdblock3 rw\0"		\
 	"uboot_sf_offset=0x0\0"						\
 	"uboot_sf_size=0x60000\0"					\
 	"kernel_sf_offset=0x80000\0"					\
