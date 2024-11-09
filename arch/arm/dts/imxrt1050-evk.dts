@@ -122,11 +122,6 @@
 	};
 };
 
-&usbotg1 {
-	dr_mode = "host";
-	status = "okay";
-};
-
 &fec {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fec>;
