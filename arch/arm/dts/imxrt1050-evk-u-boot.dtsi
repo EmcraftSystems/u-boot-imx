@@ -81,6 +81,16 @@
 			/delete-property/ assigned-clock-rates;
 			/delete-property/ assigned-clock-parents;
 		};
+
+		fec: ethernet@402d8000 {
+			compatible = "fsl,imxrt1xxx-fec";
+			reg = <0x402d8000 0x4000>;
+			clocks = <&clks IMXRT1050_CLK_ENET>;
+			clock-names = "ipg";
+			fsl,num-tx-queues=<3>;
+			fsl,num-rx-queues=<3>;
+			status = "disabled";
+		};
 	};
 };
 
@@ -317,6 +327,25 @@
 		>;
 	};
 
+	pinctrl_fec: fecgrp {
+		fsl,pins = <
+			MXRT1050_IOMUXC_GPIO_B1_04_ENET_RX_DATA00	(IMX_PAD_SION | 0xB0E9)
+			MXRT1050_IOMUXC_GPIO_B1_05_ENET_RX_DATA01	(IMX_PAD_SION | 0xB0E9)
+			MXRT1050_IOMUXC_GPIO_B1_06_ENET_RX_EN		0xB0E9
+			MXRT1050_IOMUXC_GPIO_B1_07_ENET_TX_DATA00	0xB0E9
+			MXRT1050_IOMUXC_GPIO_B1_08_ENET_TX_DATA01	0xB0E9
+			MXRT1050_IOMUXC_GPIO_B1_09_ENET_TX_EN		0xB0E9
+			MXRT1050_IOMUXC_GPIO_B1_10_ENET_REF_CLK		(IMX_PAD_SION | 0xB0E9)
+			MXRT1050_IOMUXC_GPIO_B1_11_ENET_RX_ER		0xB0E9
+			MXRT1050_IOMUXC_GPIO_EMC_40_ENET_MDC		0xB0E9
+			MXRT1050_IOMUXC_GPIO_EMC_41_ENET_MDIO		0xB0E9
+			/* RST */
+			MXRT1050_IOMUXC_GPIO_AD_B0_09_GPIO1_IO09	0xB0A9
+			/* INT */
+			MXRT1050_IOMUXC_GPIO_AD_B0_10_GPIO1_IO10	0xB0E9
+		>;
+	};
+
 	pinctrl_lpuart1: lpuart1grp {
 		bootph-pre-ram;
 	};
@@ -364,4 +393,32 @@
 &usbotg1 {
 	dr_mode = "host";
 	status = "okay";
+};
+
+&fec {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fec>;
+
+	status = "okay";
+	phy-mode = "rmii";
+
+	phy-handle = <&ethphy0>;
+	phy-reset-duration = <1>;
+	phy-reset-gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
+
+	clocks = <&clks IMXRT1050_CLK_ENET>, <&clks IMXRT1050_CLK_ENET_REF>;
+	clock-names = "ipg", "enet_clk_ref";
+
+	assigned-clocks = <&clks IMXRT1050_CLK_PLL6_BYPASS>;
+	assigned-clock-parents = <&clks IMXRT1050_CLK_PLL6_ENET>;
+
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethphy0: ethernet-phy@2 {
+			reg = <2>;
+			micrel,led-mode = <1>;
+		};
+	};
 };
