@@ -357,6 +357,9 @@
 
 &usdhc1 {
 	compatible = "fsl,imxrt-usdhc";
+	clocks = <&clks IMXRT1050_CLK_USDHC1>;
+	clock-names = "per";
+
 	bootph-pre-ram;
 };
 
