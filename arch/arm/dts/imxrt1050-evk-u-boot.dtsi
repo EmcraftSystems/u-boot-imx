@@ -343,7 +343,7 @@
 
 		display-timings {
 			timing0: timing0 {
-				clock-frequency = <9300000>;
+				clock-frequency = <40625000>;
 				hactive = <480>;
 				vactive = <272>;
 				hback-porch = <4>;
