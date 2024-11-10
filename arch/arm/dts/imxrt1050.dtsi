@@ -2,8 +2,6 @@
 /*
  * Copyright (C) 2019
  * Author(s): Giulio Benetti <giulio.benetti@benettiengineering.com>
- * Copyright (C) 2023 Emcraft Systems
- * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  */
 
 #include "armv7-m.dtsi"
@@ -85,11 +83,13 @@
 		};
 
 		usdhc1: mmc@402c0000 {
-			compatible = "fsl,imxrt-usdhc";
+			compatible = "fsl,imxrt1050-usdhc", "fsl,imx6sl-usdhc";
 			reg = <0x402c0000 0x4000>;
 			interrupts = <110>;
-			clocks = <&clks IMXRT1050_CLK_USDHC1>;
-			clock-names = "per";
+			clocks = <&clks IMXRT1050_CLK_IPG_PODF>,
+				<&clks IMXRT1050_CLK_OSC>,
+				<&clks IMXRT1050_CLK_USDHC1>;
+			clock-names = "ipg", "ahb", "per";
 			bus-width = <4>;
 			fsl,wp-controller;
 			no-1-8-v;
@@ -155,7 +155,6 @@
 			interrupts = <100>;
 			clocks = <&osc3M>;
 			clock-names = "per";
-			status = "disabled";
 		};
 	};
 };
