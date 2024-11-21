@@ -96,6 +96,7 @@ int board_late_init(void)
 
 	anatop_base = (void *)ofnode_get_addr(ofnode_by_compatible(ofnode_null(), "fsl,imxrt-anatop"));
 	id = * (u32 *)(anatop_base + 0x260);
+	id &= ~(0xFF);
 	if (id == 0x006c0000) {
 		/* runnig on IMXRT106X per
 		 * https://community.nxp.com/t5/i-MX-Processors/Device-Identification-Register/m-p/1535727
