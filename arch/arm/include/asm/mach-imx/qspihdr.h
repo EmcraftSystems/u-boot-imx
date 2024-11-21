@@ -213,6 +213,19 @@ enum {
 };
 
 /* Definitions for FlexSPI Serial Clock Frequency */
+#if CONFIG_IS_ENABLED(TARGET_IMXRT1060_EVK)
+enum {
+    kFlexSpiSerialClk_30MHz  = 1,
+    kFlexSpiSerialClk_50MHz  = 2,
+    kFlexSpiSerialClk_60MHz  = 3,
+    kFlexSpiSerialClk_75MHz  = 4,
+    kFlexSpiSerialClk_80MHz  = 5,
+    kFlexSpiSerialClk_100MHz = 6,
+    kFlexSpiSerialClk_120MHz = 7,
+    kFlexSpiSerialClk_133MHz = 8,
+    kFlexSpiSerialClk_166MHz = 9,
+};
+#else
 enum {
     kFlexSpiSerialClk_30MHz  = 1,
     kFlexSpiSerialClk_50MHz  = 2,
@@ -224,6 +237,8 @@ enum {
     kFlexSpiSerialClk_166MHz = 8,
     kFlexSpiSerialClk_200MHz = 9,
 };
+#endif
+
 
 /* Lookup table related defintions */
 #define CMD_INDEX_READ        0
