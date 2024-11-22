@@ -541,6 +541,50 @@ static int spi_flash_test(struct spi_flash *flash, uint8_t *buf, ulong len,
 	return 0;
 }
 
+static int do_spi_flash_stest(int argc, char *const argv[])
+{
+	unsigned long offset;
+	unsigned long len;
+	unsigned long addr_from;
+	unsigned long addr_to;
+	unsigned long iteration;
+	uint8_t *from;
+	char *endp;
+	uint8_t *vbuf;
+	int i;
+
+	if (argc < 6)
+		return -1;
+	offset = hextoul(argv[1], &endp);
+	if (*argv[1] == 0 || *endp != 0)
+		return -1;
+	len = hextoul(argv[2], &endp);
+	if (*argv[2] == 0 || *endp != 0)
+		return -1;
+	addr_from = hextoul(argv[3], &endp);
+	if (*argv[3] == 0 || *endp != 0)
+		return -1;
+	addr_to = hextoul(argv[4], &endp);
+	if (*argv[4] == 0 || *endp != 0)
+		return -1;
+	iteration = dectoul(argv[5], &endp);
+	if (*argv[5] == 0 || *endp != 0)
+		return -1;
+
+	vbuf = map_sysmem(addr_to, 0);
+	from = map_sysmem(addr_from, 0);
+
+	for (i = 0; i < iteration; i++) {
+		printf("Iteration %d ", i+1);
+		if (spi_flash_test(flash, from, len, offset, vbuf)) {
+			printf("Test failed\n");
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static int do_spi_flash_test(int argc, char *const argv[])
 {
 	unsigned long offset;
@@ -616,6 +660,8 @@ static int do_spi_flash(struct cmd_tbl *cmdtp, int flag, int argc,
 		ret = do_spi_protect(argc, argv);
 	else if (IS_ENABLED(CONFIG_CMD_SF_TEST) && !strcmp(cmd, "test"))
 		ret = do_spi_flash_test(argc, argv);
+	else if (IS_ENABLED(CONFIG_CMD_SF_TEST) && !strcmp(cmd, "stest"))
+		ret = do_spi_flash_stest(argc, argv);
 	else
 		ret = CMD_RET_USAGE;
 
@@ -642,11 +688,12 @@ U_BOOT_LONGHELP(sf,
 	"					  at address 'sector'"
 #endif
 #ifdef CONFIG_CMD_SF_TEST
-	"\nsf test offset len		- run a very basic destructive test"
+	"\nsf test offset len			- run a very basic destructive test"
+	"\nsf stest offset len from to iter	- run QSPI Flash reliability test"
 #endif
 	);
 
 U_BOOT_CMD(
-	sf,	5,	1,	do_spi_flash,
+	sf,	7,	1,	do_spi_flash,
 	"SPI flash sub-system", sf_help_text
 );
