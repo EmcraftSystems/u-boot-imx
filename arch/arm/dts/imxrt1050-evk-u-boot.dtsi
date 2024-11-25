@@ -470,6 +470,8 @@
 &flexspi1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexspi>;
+	assigned-clocks = <&clks IMXRT1050_CLK_PLL3_PFD0_720M>;
+	assigned-clock-rates = <480000000>;
 	status = "okay";
 
 	is25wp064a: flash0@0 {
@@ -477,7 +479,7 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
-		spi-max-frequency = <133000000>;
+		spi-max-frequency = <104000000>;
 		spi-tx-bus-width = <4>;
 		spi-rx-bus-width = <4>;
 		partition@0 {
