@@ -4,10 +4,4 @@
  * Author(s): Alexander Sanochkin <sasha@emcraft.com>
  */
 
-/dts-v1/;
-#include "imxrt1050-evk.dts"
-
-/ {
-	model = "NXP IMXRT1060-evk board";
-
-};
+#include "imxrt1050-evk-u-boot.dtsi"
