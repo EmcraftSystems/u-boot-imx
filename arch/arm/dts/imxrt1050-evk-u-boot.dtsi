@@ -55,6 +55,15 @@
 			status = "disabled";
 		};
 
+		backlight_display: backlight {
+			compatible = "gpio-backlight";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_backlight>;
+			gpios = <&gpio2 31 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			status = "okay";
+		};
+
 		lcdif: lcdif@402b8000 {
 			compatible = "fsl,imxrt-lcdif";
 			reg = <0x402b8000 0x4000>;
@@ -322,8 +331,13 @@
 			MXRT1050_IOMUXC_GPIO_B1_01_LCD_DATA13		0x1b0b1
 			MXRT1050_IOMUXC_GPIO_B1_02_LCD_DATA14		0x1b0b1
 			MXRT1050_IOMUXC_GPIO_B1_03_LCD_DATA15		0x1b0b1
-			MXRT1050_IOMUXC_GPIO_B1_15_GPIO2_IO31		0x0b069
 			MXRT1050_IOMUXC_GPIO_AD_B0_02_GPIO1_IO02	0x0b069
+		>;
+	};
+
+	pinctrl_backlight: backlightgrp {
+		fsl,pins = <
+			MXRT1050_IOMUXC_GPIO_B1_15_GPIO2_IO31		0x00058
 		>;
 	};
 
@@ -367,6 +381,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lcdif>;
 	display = <&display0>;
+	backlight = <&backlight_display>;
 	status = "okay";
 
 	display0: display0 {
