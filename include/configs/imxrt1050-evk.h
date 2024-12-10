@@ -27,8 +27,7 @@
 #define CONFIG_FB_ADDR			FB_RESERVED_BASE
 
 #define _CONFIG_EXTRA_ENV_SETTINGS_VIDEO \
-		"splashsource=mmc_fs\0" \
-		"splashimage=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0"
+		"splashsource=mmc_fs\0"
 #else
 #define _CONFIG_EXTRA_ENV_SETTINGS_VIDEO ""
 #endif
