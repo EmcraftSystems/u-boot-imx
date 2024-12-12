@@ -300,7 +300,7 @@ static void usb_oc_config(void __iomem *usbnc_base, int index)
 	struct usbnc_regs __iomem *usbnc = (struct usbnc_regs __iomem *)usbnc_base;
 #if defined(CONFIG_MX6)
 	void __iomem *ctrl = (void __iomem *)(&usbnc->ctrl[index]);
-#elif defined(CONFIG_USB_EHCI_MX7) || defined(CONFIG_MX7ULP) || defined(CONFIG_IMX8) || defined(CONFIG_IMX8ULP)
+#elif defined(CONFIG_USB_EHCI_MX7) || defined(CONFIG_MX7ULP) || defined(CONFIG_IMXRT) || defined(CONFIG_IMX8) || defined(CONFIG_IMX8ULP)
 	void __iomem *ctrl = (void __iomem *)(&usbnc->ctrl[0]);
 #endif
 
