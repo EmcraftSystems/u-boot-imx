@@ -18,6 +18,7 @@
 #include <asm/armv7m.h>
 #include <phy.h>
 #include <clk.h>
+#include <backlight.h>
 #include <dt-bindings/clock/imxrt1050-clock.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -92,7 +93,10 @@ int board_init(void)
 int board_late_init(void)
 {
 	void * anatop_base;
+	struct udevice *udev;
+	struct backlight_ops *ops;
 	u32 id;
+	int ret;
 
 	anatop_base = (void *)ofnode_get_addr(ofnode_by_compatible(ofnode_null(), "fsl,imxrt-anatop"));
 	id = * (u32 *)(anatop_base + 0x260);
@@ -103,6 +107,19 @@ int board_late_init(void)
 		 */
 		env_set("board", "imxrt1060-evk");
 		env_set("board_name", "imxrt1060-evk");
+	}
+
+	if (IS_ENABLED(CONFIG_SPLASH_SCREEN) && env_get("splashimage")) {
+		ret = uclass_get_device(UCLASS_PANEL_BACKLIGHT, 0, &udev);
+		if (ret) {
+			printf("Backlight enable failed\n");
+			return ret;
+		}
+		ops = backlight_get_ops(udev);
+		if (!ops->enable) {
+			return -ENOSYS;
+		}
+		ops->enable(udev);
 	}
 
 	return 0;

@@ -16,19 +16,18 @@
 #define PHYS_SDRAM			0x80000000
 #define PHYS_SDRAM_SIZE			(32 * 1024 * 1024)
 
-#define FB_RESERVED_SIZE		(2 * 1024 * 1024) /*  should be 2^N, 5<=N<=32 */
+#define FB_RESERVED_SIZE		(1024 * 1024) /*  should be 2^N, 5<=N<=32 */
 #define FB_RESERVED_BASE		(PHYS_SDRAM + PHYS_SDRAM_SIZE - \
 					 FB_RESERVED_SIZE) /* should be multiple to the region size i.e. FB_RESERVED_SIZE */
 
-#define DMAMEM_SZ_ALL			(2 * 1024 * 1024) /* should be 2^N */
+#define DMAMEM_SZ_ALL			(1024 * 1024) /* should be 2^N */
 #define DMAMEM_BASE			(FB_RESERVED_BASE - DMAMEM_SZ_ALL)  /* should be multiple to DMAMEM_SZ_ALL */
 
 #ifdef CONFIG_VIDEO
 #define CONFIG_FB_ADDR			FB_RESERVED_BASE
 
 #define _CONFIG_EXTRA_ENV_SETTINGS_VIDEO \
-		"splashsource=mmc_fs\0" \
-		"splashimage=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0"
+		"splashsource=mmc_fs\0"
 #else
 #define _CONFIG_EXTRA_ENV_SETTINGS_VIDEO ""
 #endif

@@ -33,6 +33,7 @@
 			compatible = "fsl,imxrt-usbphy";
 			reg = <0x400d9000 0x1000>;
 			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clks IMXRT1050_CLK_USBOH3>;
 		};
 
 		usbmisc: usbmisc@402e0800 {
@@ -53,6 +54,15 @@
 			tx-burst-size-dword = <0x10>;
 			rx-burst-size-dword = <0x10>;
 			status = "disabled";
+		};
+
+		backlight_display: backlight {
+			compatible = "gpio-backlight";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_backlight>;
+			gpios = <&gpio2 31 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			status = "okay";
 		};
 
 		lcdif: lcdif@402b8000 {
@@ -335,8 +345,12 @@
 			MXRT1050_IOMUXC_GPIO_B1_01_LCD_DATA13		0x1b0b1
 			MXRT1050_IOMUXC_GPIO_B1_02_LCD_DATA14		0x1b0b1
 			MXRT1050_IOMUXC_GPIO_B1_03_LCD_DATA15		0x1b0b1
-			MXRT1050_IOMUXC_GPIO_B1_15_GPIO2_IO31		0x0b069
-			MXRT1050_IOMUXC_GPIO_AD_B0_02_GPIO1_IO02	0x0b069
+		>;
+	};
+
+	pinctrl_backlight: backlightgrp {
+		fsl,pins = <
+			MXRT1050_IOMUXC_GPIO_B1_15_GPIO2_IO31		0x00058
 		>;
 	};
 
@@ -393,6 +407,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lcdif>;
 	display = <&display0>;
+	backlight = <&backlight_display>;
 	status = "okay";
 
 	display0: display0 {
