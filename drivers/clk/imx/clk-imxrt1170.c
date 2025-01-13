@@ -252,6 +252,7 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 	void *base;
 	struct imxrt1170_clk_root *root;
 	struct imxrt1170_clk_ccgr *ccgr;
+	struct clk *clk;
 
 	/* Anatop clocks */
 	base = (void *)ofnode_get_addr(ofnode_by_compatible(ofnode_null(), "fsl,imxrt-anatop"));
@@ -311,7 +312,6 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 	if (base == (void *)FDT_ADDR_T_NONE)
 		return -EINVAL;
 
-	struct clk *clk, *clk1;
 
 	for (int i = 0; i < ARRAY_SIZE(clk_roots); i++) {
 		root = &clk_roots[i];
@@ -326,26 +326,6 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 					 base + ccgr->off, 0, ccgr->flags);
 		clk_dm(ccgr->clk_id, clk);
 	}
-
-	clk_get_by_id(IMXRT1170_CLK_PLL_ARM_OUT, &clk);
-	clk_enable(clk);
-	clk_get_by_id(IMXRT1170_CLK_ROOT_M7, &clk1);
-	clk_set_parent(clk1, clk);
-
-	clk_get_by_id(IMXRT1170_CLK_PLL2_PFD2, &clk);
-
-	clk_get_by_id(IMXRT1170_CLK_ROOT_SEMC, &clk1);
-	clk_enable(clk1);
-	clk_set_parent(clk1, clk);
-
-	clk_get_by_id(IMXRT1170_CLK_ROOT_SEMC, &clk);
-	clk_enable(clk);
-	clk_set_rate(clk, 132000000UL);
-
-	clk_get_by_id(IMXRT1170_CLK_ROOT_GPT1, &clk);
-	clk_enable(clk);
-	clk_set_rate(clk, 32000000UL);
-
 
 	return 0;
 }

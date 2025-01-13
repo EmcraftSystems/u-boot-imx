@@ -42,6 +42,10 @@
 };
 
 &semc {
+	assigned-clocks = <&clks IMXRT1170_CLK_PLL2_PFD1>, <&clks IMXRT1170_CLK_ROOT_SEMC>;
+	assigned-clock-parents = <&clks IMXRT1170_CLK_PLL2>, <&clks IMXRT1170_CLK_PLL2_PFD1>;
+	assigned-clock-rates = <396000000>, <132000000>;
+
 	/*
 	 * Memory configuration from sdram datasheet IS42S16160J-6BLI
 	 */
