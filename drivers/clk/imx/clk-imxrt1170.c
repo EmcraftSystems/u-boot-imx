@@ -98,6 +98,8 @@ static struct clk_ops imxrt1170_clk_ops = {
 	.set_parent = imxrt1170_clk_set_parent,
 };
 
+static const char * const bus_sels[] = {"rcosc48M_div2", "osc", "rcosc400M", "rcosc16M",
+"pll3_sys", "pll1_div5", "pll2_sys", "pll2_pfd3"};
 static const char * const lpuart1_sels[] = {"rcosc48M_div2", "osc", "rcosc400M", "rcosc16M",
 "pll3_div2", "pll1_div5", "pll2_sys", "pll2_pfd3"};
 static const char * const gpt1_sels[] = {"rcosc48M_div2", "osc", "rcosc400M", "rcosc16M",
@@ -106,6 +108,8 @@ static const char * const usdhc1_sels[] = {"rcosc48M_div2", "osc", "rcosc400M", 
 "pll2_pfd2", "pll2_pfd0", "pll1_div5", "pll_arm"};
 static const char * const semc_sels[] = {"rcosc48M_div2", "osc", "rcosc400M", "rcosc16M",
 "pll1_div5", "pll2_sys", "pll2_pfd2", "pll3_pfd0"};
+static const char * const enet1_sels[] = {"rcosc48M_div2", "osc", "rcosc400M", "rcosc16M",
+"pll1_div2_out", "audio_pll", "pll1_div5_out", "pll2_pfd1"};
 
 static int imxrt1170_clk_probe(struct udevice *dev)
 {
@@ -133,6 +137,11 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 	clk_dm(IMXRT1170_CLK_PLL2,
 	       imx_clk_pllv3(IMX_PLLV3_GENERICV2, "pll2_sys", "osc",
 			     base + 0x240, 1));
+	clk_dm(IMXRT1170_CLK_PLL1,
+	       imx_clk_pllv3(IMX_PLLV3_ENET_1G, "pll1_sys", "osc",
+			     base + 0x2c0, 1));
+	clk_dm(IMXRT1170_CLK_PLL1_OUT,
+	       imx_clk_gate_dis("pll1_out", "pll1_sys", base + 0x2c0, 14));
 
 	clk_dm(IMXRT1170_CLK_PLL3_PFD0,
 	       imx_clk_pfd("pll3_pfd0", "pll3_sys", base + 0x230, 0));
@@ -155,10 +164,26 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 	clk_dm(IMXRT1170_CLK_PLL3_DIV2,
 	       imx_clk_fixed_factor("pll3_div2", "pll3_sys", 1, 2));
 
+	clk_dm(IMXRT1170_CLK_PLL1_DIV2,
+	       imx_clk_fixed_factor("pll1_div2", "pll1_out", 1, 2));
+	clk_dm(IMXRT1170_CLK_PLL1_DIV2_OUT,
+	       imx_clk_gate("pll1_div2_out", "pll1_div2", base + 0x2c0, 25));
+	clk_dm(IMXRT1170_CLK_PLL1_DIV5,
+	       imx_clk_fixed_factor("pll1_div5", "pll1_out", 1, 5));
+	clk_dm(IMXRT1170_CLK_PLL1_DIV5_OUT,
+	       imx_clk_gate("pll1_div5_out", "pll1_div5", base + 0x2c0, 26));
+
 	/* CCM clocks */
 	base = dev_read_addr_ptr(dev);
 	if (base == (void *)FDT_ADDR_T_NONE)
 		return -EINVAL;
+
+	clk_dm(IMXRT1170_CLK_BUS_SEL,
+	       imx_clk_mux("bus_sel", base + (2 * 0x80), 8, 3,
+			   bus_sels, ARRAY_SIZE(bus_sels)));
+	clk_dm(IMXRT1170_CLK_BUS,
+	       imx_clk_divider("bus", "bus_sel",
+			       base + (2 * 0x80), 0, 8));
 
 	clk_dm(IMXRT1170_CLK_LPUART1_SEL,
 	       imx_clk_mux("lpuart1_sel", base + (25 * 0x80), 8, 3,
@@ -187,6 +212,14 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 	clk_dm(IMXRT1170_CLK_SEMC,
 	       imx_clk_divider("semc", "semc_sel",
 			       base + (4 * 0x80), 0, 8));
+
+	clk_dm(IMXRT1170_CLK_ENET1_SEL,
+	       imx_clk_mux("enet1_sel", base + (51 * 0x80), 8, 3,
+			   enet1_sels, ARRAY_SIZE(semc_sels)));
+	clk_dm(IMXRT1170_CLK_ENET1,
+	       imx_clk_divider("enet1", "enet1_sel",
+			       base + (51 * 0x80), 0, 8));
+
 	struct clk *clk, *clk1;
 
 	clk_get_by_id(IMXRT1170_CLK_PLL2_PFD2, &clk);
