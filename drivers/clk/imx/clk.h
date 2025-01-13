@@ -88,6 +88,9 @@ struct clk *imx_clk_pllv3(enum imx_pllv3_type type, const char *name,
 			  const char *parent_name, void __iomem *base,
 			  u32 div_mask);
 
+struct clk *imx_clk_pll_arm_rt1170(const char *name,
+			  const char *parent_name, void __iomem *base);
+
 static inline struct clk *imx_clk_gate2(const char *name, const char *parent,
 					void __iomem *reg, u8 shift)
 {
