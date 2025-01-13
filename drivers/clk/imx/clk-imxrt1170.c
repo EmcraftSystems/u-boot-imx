@@ -113,7 +113,7 @@ static const char * const gpt1_sels[] = {IMXRT1170_CLK_SRC_COMMON,
 static const char * const usdhc1_sels[] = {IMXRT1170_CLK_SRC_COMMON,
 "pll2_pfd2", "pll2_pfd0", "pll1_div5", "pll_arm"};
 static const char * const semc_sels[] = {IMXRT1170_CLK_SRC_COMMON,
-"pll1_div5", "pll2_sys", "pll2_pfd2", "pll3_pfd0"};
+"pll1_div5", "pll2_sys", "pll2_pfd1", "pll3_pfd0"};
 static const char * const enet1_sels[] = {IMXRT1170_CLK_SRC_COMMON,
 "pll1_div2", "audio_pll", "pll1_div5", "pll2_pfd1"};
 
