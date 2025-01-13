@@ -26,4 +26,10 @@
 #define DMAMEM_SZ_ALL			(1 * 1024 * 1024)  /* should be 2^N */
 #define DMAMEM_BASE			(FB_RESERVED_BASE - DMAMEM_SZ_ALL) /* should be multiple to DMAMEM_SZ_ALL */
 
+#define CONFIG_EXTRA_ENV_SETTINGS					\
+	"ethaddr=aa:bb:cc:dd:ee:f0\0"					\
+	"serverip=172.17.0.1\0"						\
+	"ipaddr=172.17.44.111\0"					\
+	"netmask=255.255.0.0\0"						\
+
 #endif /* __IMXRT1170_EVK_H */

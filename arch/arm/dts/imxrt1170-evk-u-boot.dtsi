@@ -5,6 +5,8 @@
  * Giulio Benetti <giulio.benetti@benettiengineering.com>
  */
 
+#include "imxrt1170-pinfunc.h"
+
 / {
 	binman: binman {
 		multiple-images;
@@ -20,6 +22,15 @@
 
 	soc {
 		bootph-pre-ram;
+
+		fec1: ethernet@40424000 {
+                       compatible = "fsl,imxrt1xxx-fec";
+		       reg = <0x40424000 0x4000>;
+		       fsl,num-tx-queues=<3>;
+		       fsl,num-rx-queues=<3>;
+		       status = "disabled";
+                };
+
 	};
 };
 
@@ -90,9 +101,53 @@
 		pinctrl_semc: semcgrp {
 			bootph-pre-ram;
 		};
+
+		pinctrl_fec1: fec1grp {
+			fsl,pins = <
+				IOMUXC_GPIO_AD_32_ENET_MDC		0x06
+				IOMUXC_GPIO_AD_33_ENET_MDIO		0x06
+				IOMUXC_GPIO_DISP_B2_02_ENET_TX_DATA00	0x02
+				IOMUXC_GPIO_DISP_B2_03_ENET_TX_DATA01	0x02
+				IOMUXC_GPIO_DISP_B2_04_ENET_TX_EN	0x02
+				IOMUXC_GPIO_DISP_B2_05_ENET_REF_CLK	(IMX_PAD_SION | 0x03)
+				IOMUXC_GPIO_DISP_B2_06_ENET_RX_DATA00	(IMX_PAD_SION | 0x06)
+				IOMUXC_GPIO_DISP_B2_07_ENET_RX_DATA01	(IMX_PAD_SION | 0x06)
+				IOMUXC_GPIO_DISP_B2_08_ENET_RX_EN	0x06
+				IOMUXC_GPIO_DISP_B2_09_ENET_RX_ER	0x06
+				/* RST */
+				IOMUXC_GPIO_LPSR_12_GPIO12_IO12		0x06
+				/* INT */
+				IOMUXC_GPIO_AD_12_GPIO9_IO11		0x06
+			>;
+		};
 	};
 };
 
 &usdhc1 {
 	bootph-pre-ram;
+};
+
+&fec1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fec1>;
+	status = "okay";
+	phy-mode = "rmii";
+	phy-handle = <&ethphy0>;
+	phy-reset-duration = <1>;
+	phy-reset-gpios = <&gpio12 12 GPIO_ACTIVE_LOW>;
+	assigned-clocks = <&clks IMXRT1170_CLK_ENET1_SEL>, <&clks IMXRT1170_CLK_ENET1>;
+	assigned-clock-parents = <&clks IMXRT1170_CLK_PLL1_DIV2_OUT>;
+	assigned-clock-rates = <0>, <50000000>;
+	clocks = <&clks IMXRT1170_CLK_BUS>, <&clks IMXRT1170_CLK_ENET1>;
+	clock-names = "ipg", "enet_clk_ref";
+
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethphy0: ethernet-phy@2 {
+			reg = <2>;
+			micrel,led-mode = <1>;
+		};
+	};
 };
