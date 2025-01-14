@@ -31,6 +31,11 @@
 		       status = "disabled";
                 };
 
+		iomuxc_lpsr: iomuxc_lpsr@40c08000 {
+			compatible = "fsl,imxrt-iomuxc";
+			reg = <0x40c08000 0xe0>;
+			fsl,mux_mask = <0x7>;
+		};
 	};
 };
 
@@ -106,10 +111,19 @@
 				IOMUXC_GPIO_DISP_B2_07_ENET_RX_DATA01	(IMX_PAD_SION | 0x06)
 				IOMUXC_GPIO_DISP_B2_08_ENET_RX_EN	0x06
 				IOMUXC_GPIO_DISP_B2_09_ENET_RX_ER	0x06
-				/* RST */
-				IOMUXC_GPIO_LPSR_12_GPIO12_IO12		0x06
 				/* INT */
 				IOMUXC_GPIO_AD_12_GPIO9_IO11		0x06
+			>;
+		};
+	};
+};
+
+&iomuxc_lpsr {
+	imxrt1170-evk {
+		pinctrl_fec1_lpsr: fec1lpsrgrp {
+			fsl,pins = <
+				/* RST */
+				IOMUXC_GPIO_LPSR_12_GPIO12_IO12		0x06
 			>;
 		};
 	};
@@ -121,7 +135,7 @@
 
 &fec1 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_fec1>;
+	pinctrl-0 = <&pinctrl_fec1>, <&pinctrl_fec1_lpsr>;
 	status = "okay";
 	phy-mode = "rmii";
 	phy-handle = <&ethphy0>;
