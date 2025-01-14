@@ -202,8 +202,8 @@ int board_early_init_f(void)
 		u32	mux_mode;
 		u32	conf_val;
 	} lpuart1_pins[] = {
-		{ 0x16C, 0x3B0, 0x0, 0xf1 }, /* PAD_GPIO_AD_24_LPUART1_TXD */
-		{ 0x170, 0x3B4, 0x0, 0xf1 }, /* PAD_GPIO_AD_25_LPUART1_RXD */
+		{ 0x16C, 0x3B0, 0x0, 0x6 }, /* PAD_GPIO_AD_24_LPUART1_TXD */
+		{ 0x170, 0x3B4, 0x0, 0x6 }, /* PAD_GPIO_AD_25_LPUART1_RXD */
 	};
 	int i;
 
