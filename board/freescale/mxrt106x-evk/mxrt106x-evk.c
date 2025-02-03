@@ -50,6 +50,16 @@ int board_early_init_f(void)
 	CLOCK_EnableClock(kCLOCK_Pit);
 	CLOCK_EnableClock(kCLOCK_Dma);
 
+	/* Set LPSPI clock source from PLL2 */
+	CLOCK_SetMux(kCLOCK_LpspiMux, 2);
+	/* Set LPSPI_CLK_ROOT frequency to 132.0 MHz */
+	CLOCK_SetDiv(kCLOCK_LpspiDiv, 3);
+	/* Enable LPSPI clock gate. */
+	CLOCK_EnableClock(kCLOCK_Lpspi1);
+	CLOCK_EnableClock(kCLOCK_Lpspi2);
+	CLOCK_EnableClock(kCLOCK_Lpspi3);
+	CLOCK_EnableClock(kCLOCK_Lpspi4);
+
 	mxrt105x_evk_usb_init();
 
 	return 0;
