@@ -30,7 +30,9 @@
 
 /* For SPL */
 #define CFG_SYS_UBOOT_START		0x202403FD
-#define CFG_SYS_UBOOT_BASE	        0x30010000
+#ifdef CONFIG_SPL_NOR_SUPPORT
+#define CFG_SYS_UBOOT_BASE		0x30010000
+#endif
 /* For SPL ends */
 
 #if defined(CONFIG_CMD_SF)
