@@ -21,17 +21,7 @@
 
 	memory {
 		device_type = "memory";
-		reg = <0x20240000 0xf0000 0x80000000 0x4000000>;
-
-		ocram: ocram@20240000 {
-			device_type = "memory";
-			reg = <0x20240000 0xf0000>;
-		};
-
-		sdram: sdram@80000000 {
-			device_type = "memory";
-			reg = <0x80000000 0x4000000>;
-		};
+		reg = <0x80000000 0x4000000>;
 	};
 };
 
