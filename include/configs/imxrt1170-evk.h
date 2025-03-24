@@ -29,7 +29,6 @@
 #define DMAMEM_BASE			(FB_RESERVED_BASE - DMAMEM_SZ_ALL) /* should be multiple to DMAMEM_SZ_ALL */
 
 /* For SPL */
-#define CFG_SYS_UBOOT_START		0x202403FD
 #ifdef CONFIG_SPL_NOR_SUPPORT
 #define CFG_SYS_UBOOT_BASE		0x30010000
 #endif
