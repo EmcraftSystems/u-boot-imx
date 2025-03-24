@@ -83,6 +83,14 @@
 	bootph-pre-ram;
 };
 
+&semc {
+	bootph-pre-ram;
+
+	bank1: bank@0 {
+		bootph-pre-ram;
+	};
+};
+
 &iomuxc {
 	bootph-pre-ram;
 

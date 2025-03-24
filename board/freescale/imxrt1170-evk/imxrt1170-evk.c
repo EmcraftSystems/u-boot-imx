@@ -23,6 +23,15 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#if defined DMAMEM_BASE
+ulong board_get_usable_ram_top(ulong total_size)
+{
+	/* relocate U-Boot before the uncached DMA area, which is reserved in the end of SDRAM */
+	return DMAMEM_BASE;
+}
+#endif
+
+
 #if defined(CONFIG_BOARD_EARLY_INIT_F)
 
 #if CONFIG_IS_ENABLED(FEC_MXC)
@@ -235,14 +244,7 @@ int board_early_init_r(void)
 	clk_get_by_id(IMXRT1170_CLK_ROOT_M7, &clk1);
 	clk_set_parent(clk1, clk);
 
-	int rv;
-	struct udevice *dev;
-
-	rv = uclass_get_device(UCLASS_RAM, 0, &dev);
-	if (rv) {
-		debug("DRAM init failed: %d\n", rv);
-	}
-	return rv;
+	return 0;
 }
 
 #endif
@@ -278,9 +280,21 @@ int spl_start_uboot(void)
 }
 #endif
 
+int spl_dram_init(void)
+{
+	struct udevice *dev;
+	int rv;
+
+	rv = uclass_get_device(UCLASS_RAM, 0, &dev);
+	if (rv)
+		debug("DRAM init failed: %d\n", rv);
+	return rv;
+}
+
 void spl_board_init(void)
 {
 	preloader_console_init();
+	spl_dram_init();
 	arch_cpu_init(); /* to configure mpu for sdram rw permissions */
 }
 
