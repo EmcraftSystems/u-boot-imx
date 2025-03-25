@@ -1245,7 +1245,11 @@ endif
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 	$(BOARD_SIZE_CHECK)
 
-%.flexspi: $(IMX_DEPS) %.imx
+u-boot-dtb.flexspi: $(IMX_DEPS) u-boot-dtb.imx
+	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
+	$(BOARD_SIZE_CHECK)
+
+SPL.flexspi: $(IMX_DEPS) SPL
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 	$(BOARD_SIZE_CHECK)
 

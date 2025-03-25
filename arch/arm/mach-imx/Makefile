@@ -159,6 +159,13 @@ ifeq ($(SOC),$(filter $(SOC),mx7))
 QSPI_HEADER_OFF = 0
 QSPI_UBOOT_OFF = 1
 endif
+ifeq ($(SOC),$(filter $(SOC),imxrt))
+ifeq ($(CONFIG_IMXRT1170), y)
+QSPI_HEADER_OFF = 1
+else
+QSPI_HEADER_OFF = 0
+endif
+endif
 
 ifeq ($(SOC),$(filter $(SOC),imxrt))
 ifeq ($(CONFIG_IMXRT1170), y)
