@@ -131,7 +131,7 @@ struct clk *imxrt1170_clk_composite(const char *name, const char * const *parent
 
 	mux->reg = reg;
 	mux->shift = 8;
-	mux->mask = 3;
+	mux->mask = 7;
 	mux->num_parents = num_parents;
 	mux->flags = flags;
 	mux->parent_names = parent_names;
@@ -310,7 +310,6 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 	base = dev_read_addr_ptr(dev);
 	if (base == (void *)FDT_ADDR_T_NONE)
 		return -EINVAL;
-
 
 	for (int i = 0; i < ARRAY_SIZE(clk_roots); i++) {
 		root = &clk_roots[i];
