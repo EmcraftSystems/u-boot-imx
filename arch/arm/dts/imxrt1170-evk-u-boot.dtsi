@@ -59,6 +59,10 @@
 	u-boot,dm-spl;
 };
 
+&anatop {
+	u-boot,dm-spl;
+};
+
 &lpuart1 { /* console */
 	u-boot,dm-spl;
 };
