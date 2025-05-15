@@ -178,6 +178,9 @@ int board_init(void)
 	setup_lcd();
 #endif
 
+	/* Enable wdog1 clock for Linux */
+	CLOCK_EnableClock(kCLOCK_Wdog1);
+
 	return 0;
 }
 
