@@ -19,6 +19,7 @@
 #include <linux/delay.h>
 #include <clk.h>
 #include <dt-bindings/clock/imxrt1170-clock.h>
+#include <linux/iopoll.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -79,13 +80,13 @@ void enable_enet_refclk_out(void)
 #define PLL_AI_CTRL0_REG	0x0
 #define PLL_AI_CTRL0_SET_REG	0x4
 #define PLL_AI_CTRL0_CLR_REG	0x8
-#define PLL_AI_CTRL1_REG    	0x10
+#define PLL_AI_CTRL1_REG	0x10
 #define PLL_AI_CTRL1_SET_REG	0x14
 #define PLL_AI_CTRL1_CLR_REG	0x18
-#define PLL_AI_CTRL2_REG    	0x20
+#define PLL_AI_CTRL2_REG	0x20
 #define PLL_AI_CTRL2_SET_REG	0x24
 #define PLL_AI_CTRL2_CLR_REG	0x28
-#define PLL_AI_CTRL3_REG    	0x30
+#define PLL_AI_CTRL3_REG	0x30
 #define PLL_AI_CTRL3_SET_REG	0x34
 #define PLL_AI_CTRL3_CLR_REG	0x38
 
@@ -235,14 +236,6 @@ int board_early_init_f(void)
 
 int board_early_init_r(void)
 {
-	/* Switch M7 CPU core to 986MHz from ARM_PLL */
-	struct clk *clk, *clk1;
-
-	clk_get_by_id(IMXRT1170_CLK_PLL_ARM_OUT, &clk);
-	clk_enable(clk);
-	clk_get_by_id(IMXRT1170_CLK_ROOT_M7, &clk1);
-	clk_set_parent(clk1, clk);
-
 	return 0;
 }
 
@@ -290,9 +283,161 @@ int spl_dram_init(void)
 	return rv;
 }
 
+#define PMU_BIAS_CTRL	0x550
+
+#define PMU_BIAS_CTRL2	0x560
+#define PMU_BIAS_CTRL2_WB_OK			(1 << 26)
+#define PMU_BIAS_CTRL2_WB_EN			(1 << 24)
+#define PMU_BIAS_CTRL2_WB_PWR_SW_EN_1P8(x)	((x & 7) << 10)
+#define WB_MODE_FBB_CM7				(1 << 0)
+#define WB_MODE_RBB_LPSR			(1 << 1)
+#define WB_MODE_RBB_SOC				(1 << 2)
+
+static int imxrt1170_enable_ffb(void* base)
+{
+	u32 reg;
+
+	/*
+	  As per IMXRT1170 Reference manual:
+	  17.3.2.6 Well Bias Enable Sequence
+	  The following sequence should be followed to enable Well Bias:
+	  • Set well bias setting(voltage, LVT/RVT)
+		• PMU_BIAS_CTRL[1] is set to 1 (NWELL is configured to supply and LVT CORE,FBB)
+		• PMU_BIAS_CTRL[12] is set to 1 to enable FBB correctly
+		• All the other bits are set to 0
+	  • Turn on CM7 FBB switch, and well bias (must be executed in the same step)
+		• PMU_BIAS_CTRL2[WB_EN] is set to 1
+		• PMU_BIAS_CTRL2[WB_PWR_SW_EN_1P8] is set to 1
+		• All other bits set to 0
+	  • Check the PMU_BIAS_CTRL2[WB_OK] bit to confirm Well Bias is stable
+	*/
+
+	clrsetbits_le32(base + PMU_BIAS_CTRL, (u32)-1, BIT(1) | BIT(12));
+
+	clrsetbits_le32(base + PMU_BIAS_CTRL2, (u32)-1,
+			PMU_BIAS_CTRL2_WB_PWR_SW_EN_1P8(WB_MODE_FBB_CM7) | PMU_BIAS_CTRL2_WB_EN);
+
+	return readl_poll_timeout(base + PMU_BIAS_CTRL2, reg, (reg & PMU_BIAS_CTRL2_WB_OK), 50);
+}
+
+#define DCDC_CTRL1	0x4
+#define DCDC_CTRL1_VDD1P0CTRL_TRG(x)		(((x) & 0x1f) << 8)
+#define DCDC_CTRL1_VDD1P0CTRL_TRG_MASK		(0x1f << 8)
+#define DCDC_CTRL1_VDD1P0CTRL_TRG_1P125		(21)
+
+#define DCDC_REG0	0x8
+#define DCDC_REG0_PWD_ZCD			BIT(0)
+#define DCDC_REG0_PWD_CMP_OFFSET		BIT(26)
+#define DCDC_REG0_STS_DC_OK			BIT(31)
+
+#define DCDC_REG1	0xc
+#define DCDC_REG1_DM_CTRL			BIT(3)
+#define DCDC_REG1_RLOAD_REG_EN_LPSR		BIT(4)
+
+#define DCDC_REG2	0x10
+#define DCDC_REG2_LOOPCTRL_EN_RCSCALE(x)	(((x) & 0x7) << 9)
+#define DCDC_REG2_LOOPCTRL_EN_RCSCALE_MASK	(0x7 << 9)
+
+#define DCDC_REG3	0x14
+#define DCDC_REG3_ENABLE_FF			BIT(18)
+#define DCDC_REG3_DISABLE_PULSE_SKIP		BIT(19)
+#define DCDC_REG3_DISABLE_IDLE_SKIP		BIT(20)
+#define DCDC_REG3_VDD1P0CTRL_DISABLE_STEP	BIT(29)
+
+static void DCDC_setDCMmode(void *base)
+{
+	clrbits_le32(base + DCDC_REG1, DCDC_REG1_RLOAD_REG_EN_LPSR);
+
+	clrbits_le32(base + DCDC_REG0, DCDC_REG0_PWD_ZCD);
+
+	clrbits_le32(base + DCDC_REG3, DCDC_REG3_DISABLE_IDLE_SKIP);
+
+	clrbits_le32(base + DCDC_REG3, DCDC_REG3_DISABLE_PULSE_SKIP);
+
+	clrbits_le32(base + DCDC_REG0, DCDC_REG0_PWD_CMP_OFFSET);
+
+	clrsetbits_le32(base + DCDC_REG2, DCDC_REG2_LOOPCTRL_EN_RCSCALE_MASK, DCDC_REG2_LOOPCTRL_EN_RCSCALE(5));
+
+	setbits_le32(base + DCDC_REG1, DCDC_REG1_DM_CTRL);
+
+	setbits_le32(base + DCDC_REG3, DCDC_REG3_ENABLE_FF);
+}
+
+static void DCDC_setVDD1P0voltage(void *base, int voltage)
+{
+	u32 reg;
+
+	clrsetbits_le32(base + DCDC_REG3, DCDC_REG3_VDD1P0CTRL_DISABLE_STEP, 0);
+
+	clrsetbits_le32(base + DCDC_CTRL1, DCDC_CTRL1_VDD1P0CTRL_TRG_MASK, DCDC_CTRL1_VDD1P0CTRL_TRG(voltage));
+
+	readl_poll_timeout(base + DCDC_REG0, reg, (reg & DCDC_REG0_STS_DC_OK), 50);
+}
+
+#define FBB_DISABLE_FUSE_OFFSET	0x870
+#define FBB_DISABLE_FUSE_BIT	BIT(4)
+
 void spl_board_init(void)
 {
+	void * ocotp_base;
+	void * dcdc_base;
+	void * pmu_base;
+	u32 reg;
+	struct clk *clk, *clk1;
+
 	preloader_console_init();
+
+	dcdc_base = (void *)ofnode_get_addr(ofnode_by_compatible(ofnode_null(), "fsl,imxrt1170-dcdc"));
+	ocotp_base = (void *)ofnode_get_addr(ofnode_by_compatible(ofnode_null(), "fsl,imxrt1170-ocotp"));
+	pmu_base = (void *)ofnode_get_addr(ofnode_by_compatible(ofnode_null(), "fsl,imxrt1170-anatop"));
+
+	if (dcdc_base == (void*) -1 ||
+	    ocotp_base == (void*) -1 ||
+	    pmu_base == (void*) -1) {
+		printf("failed to red PM base adresses from DT\n");
+		return;
+	}
+
+	/* Apply recommended DCDC configuration as per Refernce Manual rev. 5 chapter 21.6.2
+	   to improve the efficiency for light loading in Run mode and to improve transient
+	   performance with a big loading step. */
+	DCDC_setDCMmode(dcdc_base);
+
+	/* Set 1.125V to align with data sheet requirement */
+	DCDC_setVDD1P0voltage(dcdc_base, DCDC_CTRL1_VDD1P0CTRL_TRG_1P125);
+
+	/*
+	  Configure High frequency for the core and bus clocks
+
+	  Datasheet says:
+	  The FBB_DISABLE fuse bit must be checked on each device to determine
+	  if FBB must be enabled along with overdrive to operate the M7 core at
+	  frequencies above 600 MHz. If FBB_DISABLE = 0, then FBB must
+	  be enabled when the SOC domain is in the overdrive mode. If
+	  FBB_DISABLE = 1, then FBB should not be enabled when the SOC
+	  domain is in the overdrive mode.
+	*/
+	reg = readl(ocotp_base + FBB_DISABLE_FUSE_OFFSET);
+
+	if ((reg & FBB_DISABLE_FUSE_BIT) == FBB_DISABLE_FUSE_BIT ||
+	    imxrt1170_enable_ffb(pmu_base) == 0) {
+
+			/* Switch M7 CPU core to 996MHz from ARM_PLL */
+			clk_get_by_id(IMXRT1170_CLK_PLL_ARM_OUT, &clk);
+			clk_enable(clk);
+			clk_get_by_id(IMXRT1170_CLK_ROOT_M7, &clk1);
+			clk_set_parent(clk1, clk);
+
+			/* Switch bus clock to 240MHz */
+			clk_get_by_id(IMXRT1170_CLK_PLL3, &clk);
+			clk_enable(clk);
+			clk_get_by_id(IMXRT1170_CLK_ROOT_BUS, &clk1);
+			clk_set_parent(clk1, clk);
+			clk_set_rate(clk1, 240000000);
+	} else {
+			printf("failed to enable FBB\n");
+	}
+
 	spl_dram_init();
 }
 

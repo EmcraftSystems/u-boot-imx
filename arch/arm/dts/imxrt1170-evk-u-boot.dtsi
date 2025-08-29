@@ -83,6 +83,14 @@
 	bootph-pre-ram;
 };
 
+&ocotp {
+	bootph-pre-ram;
+};
+
+&dcdc {
+	bootph-pre-ram;
+};
+
 &lpuart1 { /* console */
 	bootph-pre-ram;
 };
