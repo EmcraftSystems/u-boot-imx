@@ -63,6 +63,14 @@
 	u-boot,dm-spl;
 };
 
+&ocotp {
+	u-boot,dm-spl;
+};
+
+&dcdc {
+	u-boot,dm-spl;
+};
+
 &lpuart1 { /* console */
 	u-boot,dm-spl;
 };
