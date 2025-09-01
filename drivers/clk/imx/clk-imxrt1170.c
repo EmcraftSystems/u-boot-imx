@@ -264,19 +264,16 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 	       imx_clk_fixed_factor("rcosc48M_div2",  "rcosc48M", 1, 2));
 
 	clk_dm(IMXRT1170_CLK_PLL_ARM,
-	       imx_clk_pll_arm_rt1170("pll_arm", "osc", base + 0x200));
+	       imx_clk_hw_pll_rt1170(IMXRT1170_PLLARM, "pll_arm", "osc", base + 0x200));
 	clk_dm(IMXRT1170_CLK_PLL_ARM_OUT,
 	       imx_clk_gate_dis("pll_arm_out", "pll_arm", base + 0x200, 30));
 
 	clk_dm(IMXRT1170_CLK_PLL3,
-	       imx_clk_pllv3(IMX_PLLV3_GENERICV2, "pll3_sys", "osc",
-			     base + 0x210, 1));
+	       imx_clk_hw_pll_rt1170(IMXRT1170_PLL3, "pll3_sys", "osc", base + 0x210));
 	clk_dm(IMXRT1170_CLK_PLL2,
-	       imx_clk_pllv3(IMX_PLLV3_GENERICV2, "pll2_sys", "osc",
-			     base + 0x240, 1));
+	       imx_clk_hw_pll_rt1170(IMXRT1170_PLL2, "pll2_sys", "osc", base + 0x240));
 	clk_dm(IMXRT1170_CLK_PLL1,
-	       imx_clk_pllv3(IMX_PLLV3_ENET_1G, "pll1_sys", "osc",
-			     base + 0x2c0, 1));
+	       imx_clk_hw_pll_rt1170(IMXRT1170_PLL1, "pll1_sys", "osc", base + 0x2c0));
 	clk_dm(IMXRT1170_CLK_PLL1_OUT,
 	       imx_clk_gate_dis("pll1_out", "pll1_sys", base + 0x2c0, 14));
 
