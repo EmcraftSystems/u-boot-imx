@@ -103,7 +103,7 @@ static struct clk_ops imxrt1170_clk_ops = {
 #define IMXRT1170_CLK_SRC_COMMON "rcosc48M_div2", "osc", "rcosc400M", "rcosc16M"
 
 static const char * const m7_sels[] = {IMXRT1170_CLK_SRC_COMMON,
-"pll_arm_out", "pll1_sys", "pll3_sys", "video_pll"};
+"pll_arm", "pll1_sys", "pll3_sys", "video_pll"};
 static const char * const bus_sels[] = {IMXRT1170_CLK_SRC_COMMON,
 "pll3_sys", "pll1_div5", "pll2_sys", "pll2_pfd3"};
 static const char * const lpuart1_sels[] = {IMXRT1170_CLK_SRC_COMMON,
@@ -266,8 +266,6 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 
 	clk_dm(IMXRT1170_CLK_PLL_ARM,
 	       imx_clk_hw_pll_rt1170(IMXRT1170_PLLARM, "pll_arm", "osc", base + 0x200));
-	clk_dm(IMXRT1170_CLK_PLL_ARM_OUT,
-	       imx_clk_gate_dis("pll_arm_out", "pll_arm", base + 0x200, 30));
 
 	clk_dm(IMXRT1170_CLK_PLL3,
 	       imx_clk_hw_pll_rt1170(IMXRT1170_PLL3, "pll3_sys", "osc", base + 0x210));
@@ -275,8 +273,6 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 	       imx_clk_hw_pll_rt1170(IMXRT1170_PLL2, "pll2_sys", "osc", base + 0x240));
 	clk_dm(IMXRT1170_CLK_PLL1,
 	       imx_clk_hw_pll_rt1170(IMXRT1170_PLL1, "pll1_sys", "osc", base + 0x2c0));
-	clk_dm(IMXRT1170_CLK_PLL1_OUT,
-	       imx_clk_gate_dis("pll1_out", "pll1_sys", base + 0x2c0, 14));
 
 	clk_dm(IMXRT1170_CLK_PLL3_PFD0,
 	       imx_clk_pfd("pll3_pfd0", "pll3_sys", base + 0x230, 0));
@@ -300,9 +296,9 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 	       imxrt1170_clk_pll_div_out_composite("pll3_div2", "pll3_sys", base + 0x210, 2, 3, 0));
 
 	clk_dm(IMXRT1170_CLK_PLL1_DIV2,
-	       imxrt1170_clk_pll_div_out_composite("pll1_div2", "pll1_out", base + 0x2c0, 2, 25, 0));
+	       imxrt1170_clk_pll_div_out_composite("pll1_div2", "pll1_sys", base + 0x2c0, 2, 25, 0));
 	clk_dm(IMXRT1170_CLK_PLL1_DIV5,
-	       imxrt1170_clk_pll_div_out_composite("pll1_div5", "pll1_out", base + 0x2c0, 5, 26, 0));
+	       imxrt1170_clk_pll_div_out_composite("pll1_div5", "pll1_sys", base + 0x2c0, 5, 26, 0));
 
 	/* CCM clocks */
 	base = dev_read_addr_ptr(dev);

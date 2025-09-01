@@ -424,7 +424,7 @@ void spl_board_init(void)
 	    imxrt1170_enable_ffb(pmu_base) == 0) {
 
 			/* Switch M7 CPU core to 996MHz from ARM_PLL */
-			clk_get_by_id(IMXRT1170_CLK_PLL_ARM_OUT, &clk);
+			clk_get_by_id(IMXRT1170_CLK_PLL_ARM, &clk);
 			clk_enable(clk);
 			clk_get_by_id(IMXRT1170_CLK_ROOT_M7, &clk1);
 			clk_set_parent(clk1, clk);
