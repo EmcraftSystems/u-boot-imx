@@ -27,6 +27,13 @@ enum imx_pll14xx_type {
 	PLL_1443X,
 };
 
+enum imxrt1170_pll_type {
+	IMXRT1170_PLLARM,
+	IMXRT1170_PLL3,
+	IMXRT1170_PLL2,
+	IMXRT1170_PLL1,
+};
+
 /* NOTE: Rate table should be kept sorted in descending order. */
 struct imx_pll14xx_rate_table {
 	unsigned int rate;
@@ -75,7 +82,7 @@ struct clk *imx_clk_pllv3(enum imx_pllv3_type type, const char *name,
 			  const char *parent_name, void __iomem *base,
 			  u32 div_mask);
 
-struct clk *imx_clk_pll_arm_rt1170(const char *name,
+struct clk *imx_clk_hw_pll_rt1170(enum imxrt1170_pll_type type, const char *name,
 			  const char *parent_name, void __iomem *base);
 
 static inline struct clk *imx_clk_gate2(const char *name, const char *parent,
