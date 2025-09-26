@@ -236,6 +236,13 @@ int board_early_init_f(void)
 
 int board_early_init_r(void)
 {
+	struct clk *clk;
+
+	/* SEMC clock must be enabled in SPL, but enable it here explicitly
+	   to tell the clock subsystem that it is in use */
+	clk_get_by_id(IMXRT1170_CLK_SEMC, &clk);
+	clk_enable(clk);
+
 	return 0;
 }
 
