@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2019 Michael Walle <michael@walle.cc>
  * Copyright (c) 2019 NXP
- * Copyright (C) 2023 Emcraft Systems
+ * Copyright (C) 2023-2025 Emcraft Systems
  * Author(s): Vladimir Skvortsov <vskvortsov@emcraft.com>
  *
  * This driver was originally ported from the linux kernel v5.4-rc3, which had
@@ -420,7 +420,11 @@ struct nxp_fspi {
 	struct nxp_fspi_devtype_data *devtype_data;
 #define FSPI_DTR_ODD_ADDR       (1 << 0)
 #define FSPI_RXCLKSRC_3		(1 << 1)
+#define FSPI_RXCLKSRC_1		(1 << 2)
 	int flags;
+#define LOOPBACK_INTERNALLY	0
+#define LOOPBACK_FROM_DQS	1
+	int rx_clk_preferred_mode;
 };
 
 static inline int needs_ip_only(struct nxp_fspi *f)
@@ -984,18 +988,27 @@ static void nxp_fspi_select_rx_sample_clk_source(struct nxp_fspi *f,
 	 * strobe and input from DQS pad), otherwise read operaton may
 	 * meet issue.
 	 * This mode require flash device connect the DQS pad on board.
-	 * For other modes, still use mode 0, keep align with before.
+	 * For other modes, still use mode 0 or mode 1, keep align with before.
 	 * spi_nor_suspend will disable 8-8-8-DTR mode, also need to
-	 * change the mode back to mode 0.
+	 * change the mode back to mode 0/1.
 	 */
 	if (!(f->flags & FSPI_RXCLKSRC_3) && op->cmd.dtr) {
 		reg = fspi_readl(f, f->iobase + FSPI_MCR0);
 		reg |= FSPI_MCR0_RXCLKSRC(3);
 		fspi_writel(f, reg, f->iobase + FSPI_MCR0);
 		f->flags |= FSPI_RXCLKSRC_3;
-	} else if ((f->flags & FSPI_RXCLKSRC_3) && !op->cmd.dtr) {
+		f->flags &= ~FSPI_RXCLKSRC_1;
+	} else if (((f->flags & FSPI_RXCLKSRC_3) ||
+			(!(f->flags & FSPI_RXCLKSRC_1) && (f->rx_clk_preferred_mode == LOOPBACK_FROM_DQS))) &&
+			!op->cmd.dtr) {
 		reg = fspi_readl(f, f->iobase + FSPI_MCR0);
 		reg &= ~FSPI_MCR0_RXCLKSRC(3);	/* select mode 0 */
+		if (f->rx_clk_preferred_mode == LOOPBACK_FROM_DQS) {
+			reg |= FSPI_MCR0_RXCLKSRC(1);	/* select mode 1 */
+			 f->flags |= FSPI_RXCLKSRC_1;
+		} else {
+			f->flags &= ~FSPI_RXCLKSRC_1;
+		}
 		fspi_writel(f, reg, f->iobase + FSPI_MCR0);
 		f->flags &= ~FSPI_RXCLKSRC_3;
 	}
@@ -1141,6 +1154,11 @@ static int nxp_fspi_default_setup(struct nxp_fspi *f)
 	if (device_is_compatible(f->dev, "nxp,lx2160a-fspi"))
 		erratum_err050568(f);
 #endif
+
+	f->rx_clk_preferred_mode = LOOPBACK_INTERNALLY;
+	if (fdtdec_get_bool(gd->fdt_blob, dev_of_offset(f->dev), "nxp-flexspi,rx-clk-loopback-from-dqs")) {
+		f->rx_clk_preferred_mode = LOOPBACK_FROM_DQS;
+	}
 
 	/* Reset the module */
 	/* w1c register, wait unit clear */
