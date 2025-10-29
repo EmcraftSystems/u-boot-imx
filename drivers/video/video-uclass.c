@@ -139,7 +139,6 @@ int video_reserve(ulong *addrp)
 		size += plat->size;
 	}
 	gd->video_bottom = CONFIG_FB_ADDR;
-	gd->fb_base = CONFIG_FB_ADDR;
 	gd->video_top = CONFIG_FB_ADDR + size;
 #else
 	gd->video_top = *addrp;
@@ -156,7 +155,6 @@ int video_reserve(ulong *addrp)
 		*addrp -= CONFIG_VAL(VIDEO_PCI_DEFAULT_FB_SIZE);
 
 	gd->video_bottom = *addrp;
-	gd->fb_base = *addrp;
 #endif
 	debug("Video frame buffers from %lx to %lx\n", gd->video_bottom,
 	      gd->video_top);
