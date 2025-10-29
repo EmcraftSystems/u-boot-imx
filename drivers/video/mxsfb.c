@@ -329,7 +329,9 @@ static int mxs_video_probe(struct udevice *dev)
 
 	struct display_timing timings;
 	u32 bpp = 0;
+#if !IS_ENABLED(CONFIG_IMXRT)
 	u32 fb_start, fb_end;
+#endif
 	int ret;
 	bool enable_bridge = false;
 
