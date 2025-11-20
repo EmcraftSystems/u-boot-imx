@@ -1,0 +1,18 @@
+if TARGET_MAAXBOARD_RT
+
+config SYS_BOARD
+	default "MaaXBoard-RT"
+
+config SYS_VENDOR
+	default "avnet"
+
+config SYS_SOC
+	default "imxrt1170"
+
+config SYS_CONFIG_NAME
+	default "maaxboard-rt"
+
+config IMX_CONFIG
+	default "board/avnet/MaaXBoard-RT/imximage.cfg"
+
+endif

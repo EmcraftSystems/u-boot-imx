@@ -1,0 +1,179 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
+/*
+ * Copyright (C) 2022
+ * Author(s): Jesse Taube <Mr.Bossman075@gmail.com>
+ * Giulio Benetti <giulio.benetti@benettiengineering.com>
+ */
+
+#include "imxrt1170-pinfunc.h"
+
+/ {
+	binman: binman {
+		multiple-images;
+	};
+
+	chosen {
+		bootph-pre-ram;
+	};
+
+	clocks {
+		bootph-pre-ram;
+	};
+
+	soc {
+		bootph-pre-ram;
+
+		fec1: ethernet@40424000 {
+                       compatible = "fsl,imxrt1xxx-fec";
+		       reg = <0x40424000 0x4000>;
+		       fsl,num-tx-queues=<3>;
+		       fsl,num-rx-queues=<3>;
+		       status = "disabled";
+                };
+
+		iomuxc_lpsr: iomuxc_lpsr@40c08000 {
+			compatible = "fsl,imxrt-iomuxc";
+			reg = <0x40c08000 0xe0>;
+			fsl,mux_mask = <0x7>;
+		};
+	};
+};
+
+&osc {
+	bootph-pre-ram;
+};
+
+&rcosc16M {
+	bootph-pre-ram;
+};
+
+&osc32k {
+	bootph-pre-ram;
+};
+
+&clks {
+	bootph-pre-ram;
+};
+
+&gpio1 {
+	bootph-pre-ram;
+};
+
+&gpio2 {
+	bootph-pre-ram;
+};
+
+&gpio3 {
+	bootph-pre-ram;
+};
+
+&gpio4 {
+	bootph-pre-ram;
+};
+
+&gpio5 {
+	bootph-pre-ram;
+};
+
+&gpt1 {
+	bootph-pre-ram;
+};
+
+&anatop {
+	bootph-pre-ram;
+};
+
+&ocotp {
+	bootph-pre-ram;
+};
+
+&dcdc {
+	bootph-pre-ram;
+};
+
+&lpuart1 { /* console */
+	bootph-pre-ram;
+};
+
+&semc {
+	bootph-pre-ram;
+
+	bank1: bank@0 {
+		bootph-pre-ram;
+	};
+};
+
+&iomuxc {
+	bootph-pre-ram;
+
+	imxrt1170-evk {
+		bootph-pre-ram;
+		pinctrl_lpuart1: lpuart1grp {
+			bootph-pre-ram;
+		};
+
+		pinctrl_usdhc0: usdhc0grp {
+			bootph-pre-ram;
+		};
+		pinctrl_semc: semcgrp {
+			bootph-pre-ram;
+		};
+
+		pinctrl_fec1: fec1grp {
+			fsl,pins = <
+				IOMUXC_GPIO_AD_32_ENET_MDC		0x06
+				IOMUXC_GPIO_AD_33_ENET_MDIO		0x06
+				IOMUXC_GPIO_DISP_B2_02_ENET_TX_DATA00	0x02
+				IOMUXC_GPIO_DISP_B2_03_ENET_TX_DATA01	0x02
+				IOMUXC_GPIO_DISP_B2_04_ENET_TX_EN	0x02
+				IOMUXC_GPIO_DISP_B2_05_ENET_REF_CLK	(IMX_PAD_SION | 0x03)
+				IOMUXC_GPIO_DISP_B2_06_ENET_RX_DATA00	(IMX_PAD_SION | 0x06)
+				IOMUXC_GPIO_DISP_B2_07_ENET_RX_DATA01	(IMX_PAD_SION | 0x06)
+				IOMUXC_GPIO_DISP_B2_08_ENET_RX_EN	0x06
+				IOMUXC_GPIO_DISP_B2_09_ENET_RX_ER	0x06
+				/* INT */
+				IOMUXC_GPIO_AD_12_GPIO9_IO11		0x06
+			>;
+		};
+	};
+};
+
+&iomuxc_lpsr {
+	imxrt1170-evk {
+		pinctrl_fec1_lpsr: fec1lpsrgrp {
+			fsl,pins = <
+				/* RST */
+				IOMUXC_GPIO_LPSR_12_GPIO12_IO12		0x06
+			>;
+		};
+	};
+};
+
+&usdhc1 {
+	bootph-pre-ram;
+};
+
+&fec1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fec1>, <&pinctrl_fec1_lpsr>;
+	status = "okay";
+	phy-mode = "rmii";
+	phy-handle = <&ethphy0>;
+	phy-reset-duration = <1>;
+	phy-reset-gpios = <&gpio12 12 GPIO_ACTIVE_LOW>;
+	assigned-clocks = <&clks IMXRT1170_CLK_ROOT_ENET1>;
+	assigned-clock-parents = <&clks IMXRT1170_CLK_PLL1_DIV2>;
+	assigned-clock-rates = <50000000>;
+	clocks = <&clks IMXRT1170_CLK_ROOT_BUS>, <&clks IMXRT1170_CLK_ENET1>;
+	clock-names = "ipg", "enet_clk_ref";
+
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethphy0: ethernet-phy@2 {
+			reg = <0>;
+			micrel,led-mode = <1>;
+		};
+	};
+};

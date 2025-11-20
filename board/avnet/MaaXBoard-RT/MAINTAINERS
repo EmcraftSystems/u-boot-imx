@@ -1,0 +1,6 @@
+MAAXBOARD-RT
+M:	a2f-linux <a2f-support@emcraft.com>
+S:	Maintained
+F:	board/avnet/MaaXBoard-RT
+F:	include/configs/maaxboard-rt.h
+F:	configs/maaxboard-rt_defconfig
