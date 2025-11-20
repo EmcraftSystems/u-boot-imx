@@ -253,6 +253,18 @@ enum {
     kFlexSPIReadSampleClk_ExternalInputFromDqsPad = 3,
 };
 
+/* Misc feature bit definitions */
+enum
+{
+    kFlexSpiMiscOffset_DiffClkEnable            = 0, //!< Bit for Differential clock enable
+    kFlexSpiMiscOffset_Ck2Enable                = 1, //!< Bit for CK2 enable
+    kFlexSpiMiscOffset_ParallelEnable           = 2, //!< Bit for Parallel mode enable
+    kFlexSpiMiscOffset_WordAddressableEnable    = 3, //!< Bit for Word Addressable enable
+    kFlexSpiMiscOffset_SafeConfigFreqEnable     = 4, //!< Bit for Safe Configuration Frequency enable
+    kFlexSpiMiscOffset_PadSettingOverrideEnable = 5, //!< Bit for Pad setting override enable
+    kFlexSpiMiscOffset_DdrModeEnable            = 6, //!< Bit for DDR clock confiuration indication.
+};
+
 /* Flash Type definition */
 enum {
     kFlexSpiDeviceType_SerialNOR    = 1,	/* Flash devices are Serial NOR */

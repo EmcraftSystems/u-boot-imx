@@ -48,10 +48,15 @@ config TARGET_IMXRT1170_EVK
 	bool "Support imxrt1170 EVK board"
 	select IMXRT1170
 
+config TARGET_MAAXBOARD_RT
+	bool "Support MaaXBoard RT"
+	select IMXRT1170
+
 endchoice
 
 source "board/freescale/imxrt1020-evk/Kconfig"
 source "board/freescale/imxrt1050-evk/Kconfig"
 source "board/freescale/imxrt1170-evk/Kconfig"
+source "board/avnet/MaaXBoard-RT/Kconfig"
 
 endif
