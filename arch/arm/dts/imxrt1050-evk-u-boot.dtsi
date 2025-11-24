@@ -470,6 +470,7 @@
 &flexspi1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexspi>;
+	nxp-flexspi,rx-clk-loopback-from-dqs;
 	assigned-clocks = <&clks IMXRT1050_CLK_PLL3_PFD0_720M>;
 	assigned-clock-rates = <480000000>;
 	status = "okay";
