@@ -22,6 +22,14 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#if defined DMAMEM_BASE
+ulong board_get_usable_ram_top(ulong total_size)
+{
+	/* relocate U-Boot before the uncached DMA area, which is reserved in the end of SDRAM */
+	return DMAMEM_BASE;
+}
+#endif
+
 int dram_init(void)
 {
 #ifndef CONFIG_SUPPORT_SPL
