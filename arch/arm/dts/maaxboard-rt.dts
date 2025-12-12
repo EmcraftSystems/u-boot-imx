@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
 /*
- * Copyright (C) 2022
- * Author(s): Jesse Taube <Mr.Bossman075@gmail.com>
- * Giulio Benetti <giulio.benetti@benettiengineering.com>
+ * Copyright (C) 2025 Emcraft Systems
  */
 
 /dts-v1/;
@@ -11,7 +9,7 @@
 #include "imxrt1170-pinfunc.h"
 
 / {
-	model = "NXP imxrt1170-evk board";
+	model = "Avnet MaaXBoard RT";
 	compatible = "fsl,imxrt1170-evk", "fsl,imxrt1170";
 
 	chosen {
@@ -34,43 +32,44 @@
 };
 
 &semc {
-	assigned-clocks = <&clks IMXRT1170_CLK_PLL2_PFD1>, <&clks IMXRT1170_CLK_ROOT_SEMC>;
-	assigned-clock-parents = <&clks IMXRT1170_CLK_PLL2>, <&clks IMXRT1170_CLK_PLL2_PFD1>;
-	assigned-clock-rates = <594000000>, <198000000>;
+//	assigned-clocks = <&clks IMXRT1170_CLK_PLL2_PFD1>, <&clks IMXRT1170_CLK_ROOT_SEMC>;
+//	assigned-clock-parents = <&clks IMXRT1170_CLK_PLL2>, <&clks IMXRT1170_CLK_PLL2_PFD1>;
+//	assigned-clock-rates = <594000000>, <198000000>;
 
 	/*
 	 * Memory configuration from sdram datasheet IS42S16160J-6BLI
 	 */
 	fsl,sdram-mux = /bits/ 8 <MUX_A8_SDRAM_A8
-				0
+				MUX_CSX0_SDRAM_CS1
 				0
 				0
 				0
 				0>;
-	fsl,sdram-control = /bits/ 8 <MEM_WIDTH_32BITS
+	fsl,sdram-control = /bits/ 8 <MEM_WIDTH_16BITS
 					BL_8
 					COL_9BITS
 					CL_3>;
 	fsl,sdram-timing = /bits/ 8 <0x2
 				     0x2
-				     0xd
-				     0x0
-				     0x8
-				     0x7
+				     0x9
+				     0x1
+				     0x5
+				     0x6
 
-				     0x0d
-				     0x0b
-				     0x00
+				     0x20
+				     0x09
+				     0x01
 				     0x00
 
-				     0x00
+				     0x04
 				     0x0A
-				     0x08
-				     0x09>;
+				     0x21
+				     0x50>;
 
 	bank1: bank@0 {
 		fsl,base-address = <0x80000000>;
-		fsl,memory-size = <MEM_SIZE_64M>;
+		fsl,memory-size = <MEM_SIZE_32M>;
+		bootph-pre-ram;
 	};
 };
 
@@ -78,7 +77,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpuart1>;
 
-	imxrt1170-evk {
+	maaxboard-rt {
 		pinctrl_lpuart1: lpuart1grp {
 			fsl,pins = <
 				IOMUXC_GPIO_AD_24_LPUART1_TXD (MXRT1170_PAD_DSE | MXRT1170_PAD_PUE)
@@ -175,10 +174,11 @@
 					8	/* SEMC_D14 */
 				IOMUXC_GPIO_EMC_B1_37_SEMC_DATA15
 					8	/* SEMC_D15 */
-				IOMUXC_GPIO_EMC_B1_08_SEMC_DM00
-					8	/* SEMC_DM00 */
 				IOMUXC_GPIO_EMC_B1_38_SEMC_DM01
 					8	/* SEMC_DM01 */
+				IOMUXC_GPIO_EMC_B1_39_SEMC_DQS
+					(IMX_PAD_SION | 8)	/* SEMC_DQS */
+#if 0
 				IOMUXC_GPIO_EMC_B2_08_SEMC_DM02
 					4	/* SEMC_DM02 */
 				IOMUXC_GPIO_EMC_B2_17_SEMC_DM03
@@ -215,8 +215,7 @@
 					8	/* SEMC_D30 */
 				IOMUXC_GPIO_EMC_B2_16_SEMC_DATA31
 					8	/* SEMC_D31 */
-				IOMUXC_GPIO_EMC_B1_39_SEMC_DQS
-					(IMX_PAD_SION | 8)	/* SEMC_DQS */
+#endif
 			>;
 		};
 

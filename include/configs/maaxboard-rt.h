@@ -17,7 +17,7 @@
  */
 
 #define PHYS_SDRAM			0x80000000
-#define PHYS_SDRAM_SIZE			(64 * 1024 * 1024)
+#define PHYS_SDRAM_SIZE			(32 * 1024 * 1024)
 
 #define FB_RESERVED_SIZE		(4 * 1024 * 1024) /* should be 2^N, 5<=N<=32 */
 #define FB_RESERVED_BASE		(PHYS_SDRAM + PHYS_SDRAM_SIZE - \
