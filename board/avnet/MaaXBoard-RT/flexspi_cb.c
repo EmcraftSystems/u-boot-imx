@@ -21,17 +21,23 @@ const struct fspi_config_parameter qspiflash_config = {
 	.sflashPadType        = kSerialFlash_8Pads,
 	.serialClkFreq        = kFlexSpiSerialClk_133MHz,
 	.sflashA1Size         = 32u * 1024u * 1024u,
-	.dataValidTime = {16u, 16u},
+	.lutCustomSeqEnable   = 1,
+	//.dataValidTime = {16u, 16u},
+	.busyOffset           = 0xf,
+	.busyBitPolarity      = 1,
 	.lookupTableF =
                 {
                     // Read LUTs
-			FLEXSPI_LUT_SEQ(CMD_DDR, FLEXSPI_8PAD, 0xEB, RADDR_DDR, FLEXSPI_8PAD, 0x18),
-			FLEXSPI_LUT_SEQ(CADDR_DDR, FLEXSPI_8PAD, 0x10, DUMMY_DDR, FLEXSPI_8PAD, 0x06),
+			FLEXSPI_LUT_SEQ(CMD_DDR, FLEXSPI_8PAD, 0xA0, RADDR_DDR, FLEXSPI_8PAD, 0x18),
+			FLEXSPI_LUT_SEQ(CADDR_DDR, FLEXSPI_8PAD, 0x10, DUMMY_DDR, FLEXSPI_8PAD, 0x0C),
 			FLEXSPI_LUT_SEQ(READ_DDR, FLEXSPI_8PAD, 0x04, STOP, FLEXSPI_1PAD, 0),
                 },
 	.pageSize           = 512u,
 	.sectorSize         = 256u * 1024u,
 	.ipcmdSerialClkFreq = 0x1,
+	.serialNorType      = 1,
 	.blockSize          = 256u * 1024u,
 	.isUniformBlockSize = true,
 };
+
+char qspiflash_config_offset[(int)&qspiflash_config.pageSize - (int)&qspiflash_config];
