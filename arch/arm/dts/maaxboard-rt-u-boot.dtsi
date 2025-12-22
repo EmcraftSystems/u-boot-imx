@@ -106,7 +106,7 @@
 &iomuxc {
 	bootph-pre-ram;
 
-	imxrt1170-evk {
+	maaxboard-rt {
 		bootph-pre-ram;
 		pinctrl_lpuart1: lpuart1grp {
 			bootph-pre-ram;

@@ -5,7 +5,7 @@
 
 /dts-v1/;
 #include "imxrt1170.dtsi"
-#include "imxrt1170-evk-u-boot.dtsi"
+#include "maaxboard-rt-u-boot.dtsi"
 #include "imxrt1170-pinfunc.h"
 
 / {
@@ -32,15 +32,15 @@
 };
 
 &semc {
-//	assigned-clocks = <&clks IMXRT1170_CLK_PLL2_PFD1>, <&clks IMXRT1170_CLK_ROOT_SEMC>;
-//	assigned-clock-parents = <&clks IMXRT1170_CLK_PLL2>, <&clks IMXRT1170_CLK_PLL2_PFD1>;
-//	assigned-clock-rates = <594000000>, <198000000>;
+	assigned-clocks = <&clks IMXRT1170_CLK_PLL2_PFD1>, <&clks IMXRT1170_CLK_ROOT_SEMC>;
+	assigned-clock-parents = <&clks IMXRT1170_CLK_PLL2>, <&clks IMXRT1170_CLK_PLL2_PFD1>;
+	assigned-clock-rates = <594000000>, <166000000>;
 
 	/*
 	 * Memory configuration from sdram datasheet IS42S16160J-6BLI
 	 */
-	fsl,sdram-mux = /bits/ 8 <MUX_A8_SDRAM_A8
-				MUX_CSX0_SDRAM_CS1
+	fsl,sdram-mux = /bits/ 8 <0
+				0
 				0
 				0
 				0
@@ -51,20 +51,20 @@
 					CL_3>;
 	fsl,sdram-timing = /bits/ 8 <0x2
 				     0x2
-				     0x9
+				     0xA
 				     0x1
-				     0x5
-				     0x6
+				     0x7
+				     0x7
 
-				     0x20
-				     0x09
+				     0x0D
+				     0x0A
 				     0x01
 				     0x00
 
 				     0x04
-				     0x0A
+				     0x04
 				     0x21
-				     0x50>;
+				     0x21>;
 
 	bank1: bank@0 {
 		fsl,base-address = <0x80000000>;
