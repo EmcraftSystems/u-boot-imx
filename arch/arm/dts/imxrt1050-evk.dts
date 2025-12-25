@@ -59,6 +59,19 @@
 			MXRT1050_IOMUXC_GPIO_SD_B0_02_USDHC1_DATA0	0x17061
 		>;
 	};
+
+	pinctrl_flexspi: flexspigrp {
+		fsl,pins = <
+			MXRT1050_IOMUXC_GPIO_SD_B1_05_FLEXSPI_A_DQS	(IMX_PAD_SION | 0x130f1)
+			MXRT1050_IOMUXC_GPIO_SD_B1_05_FLEXSPI_A_DQS	(IMX_PAD_SION | 0x130f1)
+			MXRT1050_IOMUXC_GPIO_SD_B1_06_FLEXSPI_A_SS0_B	(IMX_PAD_SION | 0x10f1)
+			MXRT1050_IOMUXC_GPIO_SD_B1_07_FLEXSPI_A_SCLK	(IMX_PAD_SION | 0x10f1)
+			MXRT1050_IOMUXC_GPIO_SD_B1_08_FLEXSPI_A_DATA0	(IMX_PAD_SION | 0x10f1)
+			MXRT1050_IOMUXC_GPIO_SD_B1_09_FLEXSPI_A_DATA1	(IMX_PAD_SION | 0x10f1)
+			MXRT1050_IOMUXC_GPIO_SD_B1_10_FLEXSPI_A_DATA2	(IMX_PAD_SION | 0x10f1)
+			MXRT1050_IOMUXC_GPIO_SD_B1_11_FLEXSPI_A_DATA3	(IMX_PAD_SION | 0x10f1)
+		>;
+	};
 };
 
 &usdhc1 {
@@ -69,4 +82,34 @@
 	pinctrl-3 = <&pinctrl_usdhc0>;
 	cd-gpios = <&gpio2 28 GPIO_ACTIVE_LOW>;
 	status = "okay";
+};
+
+&flexspi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_flexspi>;
+	nxp-flexspi,rx-clk-loopback-from-dqs;
+	assigned-clocks = <&clks IMXRT1050_CLK_PLL3_PFD0_720M>;
+	assigned-clock-rates = <480000000>;
+	status = "okay";
+
+	is25wp064a: flash0@0 {
+		reg = <0>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "jedec,spi-nor";
+		spi-max-frequency = <104000000>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		partition@0 {
+			label = "uboot";
+			reg = <0x0 0x60000>; };
+
+		partition@1 {
+			label = "uboot_env";
+			reg = <0x60000 0x20000>; };
+
+		partition@2 {
+			label = "uImage";
+			reg = <0x80000 0x780000>; };
+	};
 };
