@@ -97,6 +97,7 @@
 				IOMUXC_GPIO_SD_B1_02_USDHC1_DATA0	(IMX_PAD_SION | 0x4)
 			>;
 		};
+
 		pinctrl_semc: semcgrp {
 			fsl,pins = <
 				IOMUXC_GPIO_EMC_B1_00_SEMC_DATA00
@@ -234,4 +235,14 @@
 	pinctrl-3 = <&pinctrl_usdhc0>;
 	status = "okay";
 	broken-cd;
+};
+
+&usbotg1 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&usbotg2 {
+	dr_mode = "host";
+	status = "okay";
 };

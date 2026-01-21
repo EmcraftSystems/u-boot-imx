@@ -20,6 +20,7 @@
 #include <asm/mach-types.h>
 #include <asm/arch/sys_proto.h>
 #include <usb/usb_mx6_common.h>
+#include <linux/iopoll.h>
 
 #define ANADIG_USB2_CHRG_DETECT_EN_B		0x00100000
 #define ANADIG_USB2_CHRG_DETECT_CHK_CHRG_B	0x00080000
@@ -242,13 +243,15 @@ static void __maybe_unused
 usb_power_config_mx7ulp(void __iomem *usbphy_base) { }
 #endif
 
-#if defined(CONFIG_IMX8)
+#if defined(CONFIG_IMX8) || defined(CONFIG_IMXRT1170)
 static void usb_power_config_imx8(void __iomem *usbphy_base)
 {
 	struct usbphy_regs __iomem *usbphy = (struct usbphy_regs __iomem *)usbphy_base;
 
+#if !defined(CONFIG_IMXRT1170)
 	if (!is_imx8())
 		return;
+#endif
 
 	int timeout = 1000000;
 
