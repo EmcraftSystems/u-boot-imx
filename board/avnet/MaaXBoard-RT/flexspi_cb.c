@@ -39,5 +39,3 @@ const struct fspi_config_parameter qspiflash_config = {
 	.blockSize          = 256u * 1024u,
 	.isUniformBlockSize = true,
 };
-
-char qspiflash_config_offset[(int)&qspiflash_config.pageSize - (int)&qspiflash_config];

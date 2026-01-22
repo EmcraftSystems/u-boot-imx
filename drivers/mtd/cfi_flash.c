@@ -293,7 +293,8 @@ static inline uchar flash_read_uchar(flash_info_t *info, uint offset)
 	uchar retval;
 
 	cp = flash_map(info, 0, offset);
-#if defined(__LITTLE_ENDIAN) || defined(CFG_SYS_WRITE_SWAPPED_DATA)
+#if (defined(__LITTLE_ENDIAN) || defined(CFG_SYS_WRITE_SWAPPED_DATA)) && \
+	!defined(CONFIG_TARGET_MAAXBOARD_RT)
 	retval = flash_read8(cp);
 #else
 	retval = flash_read8(cp + info->portwidth - 1);

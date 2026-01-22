@@ -26,4 +26,6 @@
 #define CFG_SYS_UBOOT_BASE             0x30010000
 #endif
 
+#define CFG_SYS_FLASH_BASE             0x30000000
+
 #endif /* __MAAXBOARD_RT_H */

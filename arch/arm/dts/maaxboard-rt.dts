@@ -23,6 +23,35 @@
 		device_type = "memory";
 		reg = <0x80000000 0x02000000>;
 	};
+
+	flash0: s26ks256s@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		reg = <0x30000000 0x02000000>;
+		compatible = "jedec-flash";
+		bank-width = <0x2>;
+		status = "okay";
+
+		partition@0 {
+			label = "uboot";
+			reg = <0x0 0x80000>;
+		};
+
+		partition@1 {
+			label = "uboot_env";
+			reg = <0x80000 0x80000>;
+		};
+
+		partition@2 {
+			label = "uImage";
+			reg = <0x100000 0x00d00000>;
+		};
+
+		partition@3 {
+			label = "rootfs";
+			reg = <0xe00000 0x01200000>;
+		};
+	};
 };
 
 &lpuart1 { /* console */
@@ -192,35 +221,4 @@
 
 &gpt1 {
 	status = "okay";
-};
-
-&flexspi1 {
-       pinctrl-names = "default";
-       pinctrl-0 = <&pinctrl_flexspi1>;
-       nxp-flexspi,rx-clk-loopback-from-dqs;
-       status = "disabled";
-
-       assigned-clocks = <&clks IMXRT1170_CLK_ROOT_FLEXSPI1>;
-       assigned-clock-parents = <&clks IMXRT1170_CLK_PLL2_PFD2>;
-
-       flash0: s26ks256s@0 {
-               #address-cells = <1>;
-               #size-cells = <1>;
-               reg = <0>;
-               compatible = "jedec,spi-nor";
-               spi-max-frequency = <133000000>;
-               spi-tx-bus-width = <8>;
-               spi-rx-bus-width = <8>;
-               partition@0 {
-                       label = "uboot";
-                       reg = <0x0 0x60000>; };
-
-               partition@1 {
-                       label = "uboot_env";
-                       reg = <0x60000 0x20000>; };
-
-               partition@2 {
-                       label = "uImage";
-                       reg = <0x80000 0x780000>; };
-       };
 };

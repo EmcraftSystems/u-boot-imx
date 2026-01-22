@@ -9,6 +9,8 @@
 #include <log.h>
 #include <ram.h>
 #include <spl.h>
+#include <flash.h>
+#include <asm/mach-imx/qspihdr.h>
 #include <asm/global_data.h>
 #include <asm/io.h>
 #include <asm/armv7m.h>
@@ -455,9 +457,85 @@ u32 spl_boot_device(void)
 }
 #endif
 
+/* Override some CFI Flash functions to handle CFI commands endianess */
+void flash_write16(u16 value, void *addr)
+{
+	__raw_writew(cpu_to_be16(value), addr);
+}
+
+u16 flash_read16(void *addr)
+{
+	return be16_to_cpu(__raw_readw(addr));
+}
+
+#define FLEXSPI1_BASE         0x400CC000U
+
+#define FLEXSPI_MCR0          (*(volatile uint32_t *)(FLEXSPI1_BASE + 0x00))
+#define FLEXSPI_AHBCR         (*(volatile uint32_t *)(FLEXSPI1_BASE + 0x0C))
+#define FLEXSPI_FLSHA1CR2     (*(volatile uint32_t *)(FLEXSPI1_BASE + 0x80))
+#define FLEXSPI_STS0          (*(volatile uint32_t *)(FLEXSPI1_BASE + 0xE0))
+
+#define FLEXSPI_LUTKEY        (*(volatile uint32_t *)(FLEXSPI1_BASE + 0x18))
+#define FLEXSPI_LUTCR         (*(volatile uint32_t *)(FLEXSPI1_BASE + 0x1C))
+#define FLEXSPI_LUT_BASE      (FLEXSPI1_BASE + 0x200)
+#define FLEXSPI_LUT(n)        (*(volatile uint32_t *)(FLEXSPI_LUT_BASE + (n) * 4))
+
+#define LUTCR_LOCK            (1U << 0)
+#define LUTCR_UNLOCK          (2U << 0)
+#define LUT_KEY               0x5AF05AF0U
+#define LUT_WRITE_CMD_IDX     (1)
+
+#define MCR0_SWRESET          (1U << 0)
+
+#define AHBCR_PREFETCHEN      (1U << 4)
+#define AHBCR_BUFFERABLEEN    (1U << 5)
+
+#define STS0_SEQIDLE          (1U << 0)
+#define STS0_ARBIDLE          (1U << 1)
+
+#define FLSHA1CR2_AWRSEQID(i) ((i) << 8)
+
+/* Update FlexSPI LUT to enable Flash write access */
+static void flash_enable_write_access(void)
+{
+	/* Wait for FlexSPI to be idle */
+	while ((FLEXSPI_STS0 & (STS0_SEQIDLE | STS0_ARBIDLE)) !=
+	       (STS0_SEQIDLE | STS0_ARBIDLE));
+
+	/* Unlock FlexSPI1 LUT */
+	FLEXSPI_LUTKEY = LUT_KEY;
+	FLEXSPI_LUTCR = LUTCR_UNLOCK;
+
+	/* Fill LUT write command item */
+	FLEXSPI_LUT(LUT_WRITE_CMD_IDX*4) =
+		FLEXSPI_LUT_SEQ(CMD_DDR, FLEXSPI_8PAD, 0x20,
+				RADDR_DDR, FLEXSPI_8PAD, 0x18);
+	FLEXSPI_LUT(LUT_WRITE_CMD_IDX*4+1) =
+		FLEXSPI_LUT_SEQ(CADDR_DDR, FLEXSPI_8PAD, 0x10,
+				WRITE_DDR, FLEXSPI_8PAD, 0x02);
+	FLEXSPI_LUT(LUT_WRITE_CMD_IDX*4+2) = 0;
+	FLEXSPI_LUT(LUT_WRITE_CMD_IDX*4+3) = 0;
+
+	/* Set write command index in FLSHA1CR2 */
+	FLEXSPI_FLSHA1CR2 &= ~FLSHA1CR2_AWRSEQID(0xF);
+	FLEXSPI_FLSHA1CR2 |= FLSHA1CR2_AWRSEQID(LUT_WRITE_CMD_IDX);
+
+	/* Lock FlexSPI1 LUT */
+	FLEXSPI_LUTCR = LUTCR_LOCK;
+
+	/* Disable Flash access pre-fetch and buffering */
+	FLEXSPI_AHBCR &= ~(AHBCR_PREFETCHEN | AHBCR_BUFFERABLEEN);
+
+	/* Perform software reset */
+	FLEXSPI_MCR0 |= MCR0_SWRESET;
+	while (FLEXSPI_MCR0 & MCR0_SWRESET);
+}
+
 int board_init(void)
 {
 	gd->bd->bi_boot_params = gd->bd->bi_dram[0].start + 0x100;
+
+	flash_enable_write_access();
 
 	return 0;
 }
