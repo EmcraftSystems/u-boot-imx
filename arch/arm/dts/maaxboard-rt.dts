@@ -222,3 +222,13 @@
 &gpt1 {
 	status = "okay";
 };
+
+&usbotg1 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&usbotg2 {
+	dr_mode = "host";
+	status = "okay";
+};
