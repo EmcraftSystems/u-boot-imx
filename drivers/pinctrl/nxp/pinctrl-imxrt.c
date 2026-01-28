@@ -13,9 +13,21 @@ static struct imx_pinctrl_soc_info imxrt_pinctrl_soc_info = {
 	.flags = ZERO_OFFSET_VALID,
 };
 
+static struct imx_pinctrl_soc_info imxrt_pinctrl_lpsr_info = {
+	.flags = ZERO_OFFSET_VALID,
+};
+
+static struct imx_pinctrl_soc_info imxrt_pinctrl_snvs_info = {
+	.flags = ZERO_OFFSET_VALID,
+};
+
 static const struct udevice_id imxrt_pinctrl_match[] = {
 	{ .compatible = "fsl,imxrt-iomuxc",
 	  .data = (ulong)&imxrt_pinctrl_soc_info },
+	{ .compatible = "fsl,imxrt-lpsr-iomuxc",
+	  .data = (ulong)&imxrt_pinctrl_lpsr_info },
+	{ .compatible = "fsl,imxrt-snvs-iomuxc",
+	  .data = (ulong)&imxrt_pinctrl_snvs_info },
 	{ /* sentinel */ }
 };
 
