@@ -294,7 +294,7 @@ static inline uchar flash_read_uchar(flash_info_t *info, uint offset)
 
 	cp = flash_map(info, 0, offset);
 #if (defined(__LITTLE_ENDIAN) || defined(CFG_SYS_WRITE_SWAPPED_DATA)) && \
-	!defined(CONFIG_TARGET_MAAXBOARD_RT)
+	!defined(CFG_SYS_SWAPPED_CFI_DATA)
 	retval = flash_read8(cp);
 #else
 	retval = flash_read8(cp + info->portwidth - 1);
@@ -798,6 +798,9 @@ static int flash_write_cfiword(flash_info_t *info, ulong dest, cfiword_t cword)
 		flag = ((flash_read8(dstaddr) & cword.w8) == cword.w8);
 		break;
 	case FLASH_CFI_16BIT:
+#if defined(CFG_SYS_SWAPPED_CFI_DATA)
+		cword.w16 = cpu_to_be16(cword.w16);
+#endif
 		flag = ((flash_read16(dstaddr) & cword.w16) == cword.w16);
 		break;
 	case FLASH_CFI_32BIT:

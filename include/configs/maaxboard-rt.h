@@ -28,4 +28,6 @@
 
 #define CFG_SYS_FLASH_BASE             0x30000000
 
+#define CFG_SYS_SWAPPED_CFI_DATA       1
+
 #endif /* __MAAXBOARD_RT_H */
