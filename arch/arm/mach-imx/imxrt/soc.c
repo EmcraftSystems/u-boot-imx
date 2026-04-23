@@ -8,6 +8,10 @@
 #include <asm/io.h>
 #include <asm/armv7_mpu.h>
 #include <asm/mach-imx/sys_proto.h>
+#include <dm.h>
+#include <dm/uclass.h>
+#include <dm/device.h>
+#include <dm/device-internal.h>
 #include <linux/bitops.h>
 
 int arch_cpu_init(void)
@@ -59,3 +63,25 @@ void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 	/* TBD */
 	memset(mac, 0, 6);
 }
+
+/*
+ * Issue the flash's own soft-reset (via spi_nor_remove -> 66h/99h) on
+ * every SPI-NOR before CPU reset.  The Winbond w25q512nwq on the
+ * 1170-EVKB is left in a non-default mode after probe that the boot
+ * ROM cannot read on warm reset unless the flash is returned to
+ * power-on defaults first.  Not needed in SPL - do_reset / reset_misc
+ * are U-Boot only.
+ */
+#ifndef CONFIG_XPL_BUILD
+void reset_misc(void)
+{
+	struct uclass *uc;
+	struct udevice *dev, *tmp;
+
+	if (uclass_get(UCLASS_SPI_FLASH, &uc))
+		return;
+
+	uclass_foreach_dev_safe(dev, tmp, uc)
+		device_remove(dev, DM_REMOVE_NORMAL);
+}
+#endif
