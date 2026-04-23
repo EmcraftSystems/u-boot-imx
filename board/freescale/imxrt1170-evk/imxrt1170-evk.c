@@ -7,8 +7,10 @@
  */
 
 #include <dm.h>
+#include <env.h>
 #include <init.h>
 #include <log.h>
+#include <net.h>
 #include <ram.h>
 #include <spl.h>
 #include <asm/global_data.h>
@@ -463,3 +465,52 @@ int board_init(void)
 
 	return 0;
 }
+
+#if defined(CONFIG_BOARD_LATE_INIT)
+
+/*
+ * Derive ethaddr/eth1addr from the SoC Unique-ID fuses when the environment
+ * does not already carry them. OCOTP FUSEN[16] and FUSEN[17] form the 64-bit
+ * die serial and are factory-programmed on every part, so the result is
+ * deterministic per chip and survives reboots without any provisioning step.
+ *
+ * Mirrors NXP MCUX-SDK SILICONID_ConvertToMacAddr() for MIMXRT1176: OUI
+ * 54:27:8D (NXP) plus three UID bytes. eth1 differs from eth0 in the LSB so
+ * the two interfaces never collide on the same board.
+ *
+ * To ship boards without using NXP's OUI, provision the env (ethaddr and/or
+ * eth1addr) with a customer OUI via `setenv && saveenv` - the env value
+ * takes precedence.
+ */
+#define IMXRT1170_OCOTP_BASE		0x40cac000
+#define IMXRT1170_OCOTP_FUSEN(n)	(IMXRT1170_OCOTP_BASE + 0x800 + (n) * 0x10)
+
+static void imxrt1170_derive_mac_from_uid(u8 mac[6], unsigned int idx)
+{
+	u32 uid_lo = readl(IMXRT1170_OCOTP_FUSEN(16));
+
+	mac[0] = 0x54;
+	mac[1] = 0x27;
+	mac[2] = 0x8d;
+	mac[3] = (uid_lo >>  0) & 0xff;
+	mac[4] = (uid_lo >>  8) & 0xff;
+	mac[5] = ((uid_lo >> 16) & 0xff) ^ (u8)idx;
+}
+
+int board_late_init(void)
+{
+	static const char * const names[] = { "ethaddr", "eth1addr" };
+	u8 mac[6];
+	unsigned int i;
+
+	for (i = 0; i < ARRAY_SIZE(names); i++) {
+		if (eth_env_get_enetaddr(names[i], mac))
+			continue;
+		imxrt1170_derive_mac_from_uid(mac, i);
+		eth_env_set_enetaddr(names[i], mac);
+	}
+
+	return 0;
+}
+
+#endif /* CONFIG_BOARD_LATE_INIT */
