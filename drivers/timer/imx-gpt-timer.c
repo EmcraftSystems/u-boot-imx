@@ -28,6 +28,9 @@
 #define GPT_CLKSRC_IPG_CLK		(1 << 6)
 #define GPT_CLKSRC_IPG_CLK_24M		(5 << 6)
 
+/* No 24 MHz oscillator input: on i.MX RT1170, CLKSRC 5 counts RCOSC_16M */
+#define IMX_GPT_NO_OSC_24M		BIT(0)
+
 /* If CFG_SYS_HZ_CLOCK not specified et's default to 3Mhz */
 #ifndef CFG_SYS_HZ_CLOCK
 #define CFG_SYS_HZ_CLOCK		3000000
@@ -58,7 +61,8 @@ static u64 imx_gpt_timer_get_count(struct udevice *dev)
 	return timer_conv_64(readl(&regs->cnt));
 }
 
-static int imx_gpt_setup(struct imx_gpt_timer_regs *regs, u32 rate)
+static int imx_gpt_setup(struct imx_gpt_timer_regs *regs, u32 rate,
+			 bool osc_24m)
 {
 	u32 prescaler = (rate / CFG_SYS_HZ_CLOCK) - 1;
 
@@ -69,7 +73,7 @@ static int imx_gpt_setup(struct imx_gpt_timer_regs *regs, u32 rate)
 	while (readl(&regs->cr) & GPT_CR_SWR)
 		;
 
-	if (rate == 24000000UL) {
+	if (osc_24m && rate == 24000000UL) {
 		/* Set timer frequency if using 24M clock source */
 		if (prescaler > GPT_PR_PRESCALER24M_MAX)
 			return -EINVAL;
@@ -132,7 +136,8 @@ static int imx_gpt_timer_probe(struct udevice *dev)
 		return -EINVAL;
 	}
 
-	ret = imx_gpt_setup(regs, clk_rate);
+	ret = imx_gpt_setup(regs, clk_rate,
+			    !(dev_get_driver_data(dev) & IMX_GPT_NO_OSC_24M));
 	if (ret) {
 		dev_err(dev, "Could not setup timer\n");
 		return ret;
@@ -148,6 +153,7 @@ static const struct timer_ops imx_gpt_timer_ops = {
 };
 
 static const struct udevice_id imx_gpt_timer_ids[] = {
+	{ .compatible = "fsl,imxrt1170-gpt", .data = IMX_GPT_NO_OSC_24M },
 	{ .compatible = "fsl,imxrt-gpt" },
 	{}
 };

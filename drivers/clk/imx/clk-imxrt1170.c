@@ -257,6 +257,7 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 	void *base;
 	struct imxrt1170_clk_root *root;
 	struct imxrt1170_clk_ccgr *ccgr;
+	struct udevice *osc;
 	struct clk *clk;
 
 	/* Anatop clocks */
@@ -323,6 +324,16 @@ static int imxrt1170_clk_probe(struct udevice *dev)
 					 base + ccgr->off, 0, ccgr->flags);
 		clk_dm(ccgr->clk_id, clk);
 	}
+
+	/*
+	 * GPT1 is the tick timer. Its root resets to an RC oscillator; run it
+	 * from the 24 MHz crystal instead. A failure only costs accuracy.
+	 */
+	if (uclass_get_device_by_name(UCLASS_CLK, "osc", &osc) ||
+	    clk_get_by_id(IMXRT1170_CLK_ROOT_GPT1, &clk) ||
+	    clk_set_parent(clk, dev_get_clk_ptr(osc)) ||
+	    clk_set_rate(clk, 24000000) != 24000000)
+		log_warning("gpt1_root: not moved to osc\n");
 
 	return 0;
 }
