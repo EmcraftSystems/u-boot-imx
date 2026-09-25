@@ -261,7 +261,7 @@
 		};
 
 		gpt1: gpt1@400ec000 {
-			compatible = "fsl,imxrt-gpt";
+			compatible = "fsl,imxrt1170-gpt", "fsl,imxrt-gpt";
 			reg = <0x400ec000 0x4000>;
 			interrupts = <119>;
 			clocks = <&clks IMXRT1170_CLK_GPT1>;
