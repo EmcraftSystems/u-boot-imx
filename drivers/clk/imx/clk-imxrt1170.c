@@ -185,7 +185,6 @@ struct clk *imxrt1170_clk_pll_div_out_composite(const char *name, const char *pa
 
 	div->mult = 1;
 	div->div = div_factor;
-	div->div = 2;
 
 	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
 	if (!gate)
