@@ -42,8 +42,21 @@ ulong board_get_usable_ram_top(ulong total_size)
 #define MII_PHY_CTRL2_RMII_CLK_50MHZ	(1 << 7)
 #define MII_PHY_CTRL2_RMII_LED_MODE	(1 << 4)
 
+#define PHY_ID_KSZ8081		0x00221560
+#define PHY_ID_KSZ8081_MASK	0x00fffff0
+
 int board_phy_config(struct phy_device *phydev)
 {
+	/*
+	 * The writes below are for the KSZ8081 on the original EVK. The EVKB's
+	 * RTL8201F uses register 0x1f as its page select.
+	 */
+	if ((phydev->phy_id & PHY_ID_KSZ8081_MASK) != PHY_ID_KSZ8081) {
+		if (phydev->drv->config)
+			return phydev->drv->config(phydev);
+		return 0;
+	}
+
 	phy_write(phydev, MDIO_DEVAD_NONE, MII_BMCR,
 		  BMCR_RESET);
 
