@@ -4374,6 +4374,7 @@ static int spi_nor_init(struct spi_nor *nor)
 static int spi_nor_soft_reset(struct spi_nor *nor)
 {
 	struct spi_mem_op op;
+	enum spi_nor_protocol proto;
 	int ret;
 	enum spi_nor_cmd_ext ext;
 
@@ -4385,11 +4386,24 @@ static int spi_nor_soft_reset(struct spi_nor *nor)
 #endif /* SPI_NOR_BOOT_SOFT_RESET_EXT_INVERT */
 	}
 
+	/*
+	 * This helper was introduced to exit Octal-DTR mode, where 66h/99h
+	 * has to go out in 8D-8D-8D.  For plain SPI / QSPI parts that also
+	 * advertise 66h/99h the commands must be framed in 1-1-1 SDR or the
+	 * flash does not see them.
+	 *
+	 * nor->info is NULL on the SOFT_RESET_ON_BOOT call that runs before
+	 * spi_nor_read_id(); keep the 8D-8D-8D default there so that path
+	 * retains its original "blind exit-from-Octal-DTR" behaviour.
+	 */
+	proto = (!nor->info || (nor->info->flags & SPI_NOR_OCTAL_DTR_READ)) ?
+		SNOR_PROTO_8_8_8_DTR : SNOR_PROTO_1_1_1;
+
 	op = (struct spi_mem_op)SPI_MEM_OP(SPI_MEM_OP_CMD(SPINOR_OP_SRSTEN, 0),
 			SPI_MEM_OP_NO_DUMMY,
 			SPI_MEM_OP_NO_ADDR,
 			SPI_MEM_OP_NO_DATA);
-	spi_nor_setup_op(nor, &op, SNOR_PROTO_8_8_8_DTR);
+	spi_nor_setup_op(nor, &op, proto);
 	ret = spi_mem_exec_op(nor->spi, &op);
 	if (ret) {
 		dev_warn(nor->dev, "Software reset enable failed: %d\n", ret);
@@ -4400,7 +4414,7 @@ static int spi_nor_soft_reset(struct spi_nor *nor)
 			SPI_MEM_OP_NO_DUMMY,
 			SPI_MEM_OP_NO_ADDR,
 			SPI_MEM_OP_NO_DATA);
-	spi_nor_setup_op(nor, &op, SNOR_PROTO_8_8_8_DTR);
+	spi_nor_setup_op(nor, &op, proto);
 	ret = spi_mem_exec_op(nor->spi, &op);
 	if (ret) {
 		dev_warn(nor->dev, "Software reset failed: %d\n", ret);
@@ -4423,8 +4437,13 @@ out:
 int spi_nor_remove(struct spi_nor *nor)
 {
 #ifdef CONFIG_SPI_FLASH_SOFT_RESET
-	if (nor->info->flags & SPI_NOR_OCTAL_DTR_READ &&
-	    nor->flags & SNOR_F_SOFT_RESET)
+	/*
+	 * Emit 66h/99h for any flash carrying the SOFT_RESET flag, not
+	 * only octal-DTR parts.  Plain SPI / QSPI parts can also be left
+	 * in modes (4-byte, QPI, continuous-read) that survive a CPU-only
+	 * software reset and block the next boot.
+	 */
+	if (nor->flags & SNOR_F_SOFT_RESET)
 		return spi_nor_soft_reset(nor);
 #endif
 
@@ -4539,6 +4558,18 @@ int spi_nor_scan(struct spi_nor *nor)
 	ret = spi_nor_init_params(nor, info, &params);
 	if (ret)
 		return ret;
+
+	/*
+	 * 66h/99h is JEDEC-standard and supported by all modern Winbond
+	 * W25Q parts per datasheet, but BFPT dword 16 does not always
+	 * advertise it (observed on w25q512nwq).  Forcing the flag for
+	 * every Winbond is deliberately broad: the flag is only consulted
+	 * under CONFIG_SPI_FLASH_SOFT_RESET, and 66h/99h is harmless on
+	 * parts that ignore it.  Narrow to a per-part post-BFPT fixup if
+	 * this list of exceptions grows.
+	 */
+	if (JEDEC_MFR(info) == SNOR_MFR_WINBOND)
+		nor->flags |= SNOR_F_SOFT_RESET;
 
 	if (!mtd->name) {
 		sprintf(nor->mtd_name, "%s%d",
