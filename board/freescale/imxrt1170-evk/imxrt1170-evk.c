@@ -22,6 +22,7 @@
 #include <clk.h>
 #include <dt-bindings/clock/imxrt1170-clock.h>
 #include <linux/iopoll.h>
+#include <linux/libfdt.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -34,6 +35,8 @@ ulong board_get_usable_ram_top(ulong total_size)
 #endif
 
 
+static bool __maybe_unused phy_is_ksz8081;
+
 #if defined(CONFIG_BOARD_EARLY_INIT_F)
 
 #if CONFIG_IS_ENABLED(FEC_MXC)
@@ -44,6 +47,9 @@ ulong board_get_usable_ram_top(ulong total_size)
 
 #define PHY_ID_KSZ8081		0x00221560
 #define PHY_ID_KSZ8081_MASK	0x00fffff0
+
+#define IOMUXC_SW_PAD_CTL_GPIO_DISP_B2_05	(0x400e8000 + 0x46c)
+#define IOMUXC_PAD_SRE				BIT(0)
 
 int board_phy_config(struct phy_device *phydev)
 {
@@ -56,6 +62,11 @@ int board_phy_config(struct phy_device *phydev)
 			return phydev->drv->config(phydev);
 		return 0;
 	}
+
+	phy_is_ksz8081 = true;
+
+	/* The KSZ8081 needs fast slew on ENET_REF_CLK, the RTL8201F slow */
+	setbits_le32(IOMUXC_SW_PAD_CTL_GPIO_DISP_B2_05, IOMUXC_PAD_SRE);
 
 	phy_write(phydev, MDIO_DEVAD_NONE, MII_BMCR,
 		  BMCR_RESET);
@@ -244,6 +255,47 @@ int board_early_init_f(void)
 	return 0;
 }
 
+#endif
+
+#if defined(CONFIG_OF_BOARD_SETUP)
+int ft_board_setup(void *blob, struct bd_info *bd)
+{
+	fdt32_t pins[8];
+	const void *prop;
+	char name[16];
+	int off, def, idx, len, ret;
+
+	if (!phy_is_ksz8081)
+		return 0;
+
+	off = fdt_path_offset(blob, "ethernet0");
+	if (off < 0)
+		return 0;
+
+	def = fdt_stringlist_search(blob, off, "pinctrl-names", "default");
+	idx = fdt_stringlist_search(blob, off, "pinctrl-names", "ksz8081");
+	if (def < 0 || idx < 0) {
+		printf("KSZ8081: no \"ksz8081\" pinctrl state for ethernet0 in the kernel DT\n");
+		return 0;
+	}
+
+	snprintf(name, sizeof(name), "pinctrl-%d", idx);
+	prop = fdt_getprop(blob, off, name, &len);
+	if (!prop || len <= 0 || len > (int)sizeof(pins) || len % sizeof(fdt32_t)) {
+		printf("KSZ8081: bad %s for ethernet0 in the kernel DT\n", name);
+		return 0;
+	}
+
+	/* fdt_setprop() may move the blob under prop */
+	memcpy(pins, prop, len);
+	snprintf(name, sizeof(name), "pinctrl-%d", def);
+	ret = fdt_setprop(blob, off, name, pins, len);
+	if (ret)
+		printf("KSZ8081: cannot select the \"ksz8081\" state for ethernet0: %s\n",
+		       fdt_strerror(ret));
+
+	return 0;
+}
 #endif
 
 
