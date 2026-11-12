@@ -1420,7 +1420,7 @@ static int ci_udc_otg_phy_mode(struct udevice *dev)
 	void *__iomem phy_base = (void *__iomem)devfdt_get_addr(&priv->otgdev);
 	u32 val;
 
-	if (is_mx6() || is_mx7ulp() || is_imx8() || is_imx8ulp()) {
+	if (is_mx6() || is_mx7ulp() || is_imx8() || is_imx8ulp() || is_imxrt()) {
 		phy_base = (void __iomem *)fdtdec_get_addr_size_auto_noparent(gd->fdt_blob,
 							   priv->phy_off,
 							   "reg", 0, NULL, false);
